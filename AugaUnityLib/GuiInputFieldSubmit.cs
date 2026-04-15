@@ -1,5 +1,5 @@
 ﻿using System;
-using Fishlabs;
+using TMPro;
 using UnityEngine;
 
 namespace AugaUnity
@@ -7,9 +7,9 @@ namespace AugaUnity
     public class GuiInputFieldSubmit : MonoBehaviour
     {
         public Action<string> m_onSubmit;
-        private GuiInputField m_field;
+        private TMP_InputField m_field;
 
-        private void Awake() => m_field = GetComponent<GuiInputField>();
+        private void Awake() => m_field = GetComponent<TMP_InputField>();
 
         private void Update()
         {

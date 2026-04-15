@@ -1,185 +1,126 @@
-<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+<Project Sdk="Microsoft.NET.Sdk">
 
   <!-- Пути к Valheim и BepInEx -->
   <Import Project="..\Valheim.props" />
 
   <PropertyGroup>
-    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
-    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{5B19EB03-F699-46BC-AFAF-2A2E78E1F6C5}</ProjectGuid>
-    <OutputType>Library</OutputType>
-    <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>AugaUnity</RootNamespace>
+    <TargetFramework>net472</TargetFramework>
     <AssemblyName>Unity.Auga</AssemblyName>
-    <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
-    <FileAlignment>512</FileAlignment>
+    <RootNamespace>AugaUnity</RootNamespace>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <Deterministic>true</Deterministic>
-    <NuGetPackageImportStamp>
-    </NuGetPackageImportStamp>
-    <AutoGenerateBindingRedirects>false</AutoGenerateBindingRedirects>
+    <LangVersion>latest</LangVersion>
+    <!-- Отключаем авто-включение файлов из поддиректорий с иным форматом -->
+    <Nullable>disable</Nullable>
+    <!-- SDK-style auto-generates AssemblyInfo — отключаем чтобы не конфликтовало с Properties/AssemblyInfo.cs -->
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
   </PropertyGroup>
 
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+  <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
-    <OutputPath>bin\Debug\</OutputPath>
     <DefineConstants>TRACE;DEBUG;UNITY_5_6_OR_NEWER</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
 
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+  <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
-    <OutputPath>bin\Release\</OutputPath>
     <DefineConstants>TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
   </PropertyGroup>
+
+  <ItemGroup>
+    <!-- AssemblyPublicizer — автоматически делает internal-члены Valheim DLL публичными -->
+    <PackageReference Include="BepInEx.AssemblyPublicizer.MSBuild" Version="0.4.2" />
+  </ItemGroup>
+
 
   <ItemGroup>
     <!-- Valheim assemblies — публикуются автоматически через BepInEx.AssemblyPublicizer.MSBuild -->
     <Reference Include="assembly_guiutils">
       <HintPath>$(ValheimManagedDir)\assembly_guiutils.dll</HintPath>
       <Publicize>true</Publicize>
+      <Private>false</Private>
     </Reference>
     <Reference Include="assembly_postprocessing">
       <HintPath>$(ValheimManagedDir)\assembly_postprocessing.dll</HintPath>
       <Publicize>true</Publicize>
+      <Private>false</Private>
     </Reference>
     <Reference Include="assembly_sunshafts">
       <HintPath>$(ValheimManagedDir)\assembly_sunshafts.dll</HintPath>
       <Publicize>true</Publicize>
+      <Private>false</Private>
     </Reference>
     <Reference Include="assembly_utils">
       <HintPath>$(ValheimManagedDir)\assembly_utils.dll</HintPath>
       <Publicize>true</Publicize>
+      <Private>false</Private>
     </Reference>
     <Reference Include="assembly_valheim">
       <HintPath>$(ValheimManagedDir)\assembly_valheim.dll</HintPath>
       <Publicize>true</Publicize>
+      <Private>false</Private>
     </Reference>
     <!-- ui_lib переименован в gui_framework в новых версиях Valheim -->
     <Reference Include="gui_framework">
       <HintPath>$(ValheimManagedDir)\gui_framework.dll</HintPath>
       <Publicize>true</Publicize>
+      <Private>false</Private>
     </Reference>
 
-    <!-- UnityEngine — берём из valheim_Data\Managed (там полные, нестриппнутые) -->
+    <!-- UnityEngine — берём из valheim_Data\Managed (полные, нестриппнутые) -->
     <Reference Include="UnityEngine">
       <HintPath>$(ValheimManagedDir)\UnityEngine.dll</HintPath>
+      <Private>false</Private>
     </Reference>
     <Reference Include="UnityEngine.AudioModule">
       <HintPath>$(ValheimManagedDir)\UnityEngine.AudioModule.dll</HintPath>
+      <Private>false</Private>
     </Reference>
     <Reference Include="UnityEngine.CoreModule">
       <HintPath>$(ValheimManagedDir)\UnityEngine.CoreModule.dll</HintPath>
+      <Private>false</Private>
     </Reference>
-    <Reference Include="UnityEngine.ImageConversionModule">
-      <HintPath>$(ValheimManagedDir)\UnityEngine.ImageConversionModule.dll</HintPath>
-    </Reference>
-    <Reference Include="UnityEngine.IMGUIModule">
+<Reference Include="UnityEngine.IMGUIModule">
       <HintPath>$(ValheimManagedDir)\UnityEngine.IMGUIModule.dll</HintPath>
+      <Private>false</Private>
     </Reference>
     <Reference Include="UnityEngine.InputLegacyModule">
       <HintPath>$(ValheimManagedDir)\UnityEngine.InputLegacyModule.dll</HintPath>
+      <Private>false</Private>
     </Reference>
     <Reference Include="UnityEngine.TextRenderingModule">
       <HintPath>$(ValheimManagedDir)\UnityEngine.TextRenderingModule.dll</HintPath>
+      <Private>false</Private>
     </Reference>
     <Reference Include="UnityEngine.UI">
       <HintPath>$(ValheimManagedDir)\UnityEngine.UI.dll</HintPath>
+      <Private>false</Private>
     </Reference>
     <Reference Include="UnityEngine.UIModule">
       <HintPath>$(ValheimManagedDir)\UnityEngine.UIModule.dll</HintPath>
+      <Private>false</Private>
     </Reference>
     <Reference Include="Unity.TextMeshPro">
       <HintPath>$(ValheimManagedDir)\Unity.TextMeshPro.dll</HintPath>
+      <Private>false</Private>
     </Reference>
-
-    <Reference Include="System" />
-    <Reference Include="System.Core" />
   </ItemGroup>
 
+  <!-- Исключаем устаревший Coffee.UIEffects пакет — несовместим с Unity 6 UGUI 2.0 -->
   <ItemGroup>
-    <Compile Include="AddItemIconMaterial.cs" />
-    <Compile Include="AlwaysUpper.cs" />
-    <Compile Include="AugaBarberController.cs" />
-    <Compile Include="AugaBindingDisplay.cs" />
-    <Compile Include="AugaCharacterSelect.cs" />
-    <Compile Include="AugaCompendiumController.cs" />
-    <Compile Include="AugaCraftingControls.cs" />
-    <Compile Include="AugaCraftingPanel.cs" />
-    <Compile Include="AugaGuardianPowerHUD.cs" />
-    <Compile Include="AugaHealthBar.cs" />
-    <Compile Include="AugaMessageLog.cs" />
-    <Compile Include="AugaMessageLogController.cs" />
-    <Compile Include="AugaStaggerBar.cs" />
-    <Compile Include="AugaStatusEffects.cs" />
-    <Compile Include="AugaTabController.cs" />
-    <Compile Include="AugaTeleportScreen.cs" />
-    <Compile Include="AugaTopLeftMessage.cs" />
-    <Compile Include="AugaTrasher.cs" />
-    <Compile Include="BetterDurabilityBar.cs" />
-    <Compile Include="BuildHudTabFixer.cs" />
-    <Compile Include="BuildMenuPaginationController.cs" />
-    <Compile Include="CharacterPortrait.cs" />
-    <Compile Include="ChatMonitor.cs" />
-    <Compile Include="ChatWindowController.cs" />
-    <Compile Include="ColorButtonText.cs" />
-    <Compile Include="ColoredItemBar.cs" />
-    <Compile Include="ComplexTooltip.cs" />
-    <Compile Include="CooldownController.cs" />
-    <Compile Include="CraftingRequirementsPanel.cs" />
-    <Compile Include="CraftingTabButton.cs" />
-    <Compile Include="Extensions.cs" />
-    <Compile Include="GuiInputFieldSubmit.cs" />
-    <Compile Include="HideIfZeroEitr.cs" />
-    <Compile Include="HideTextIfEmpty.cs" />
-    <Compile Include="HideTheseIfThisIsHidden.cs" />
-    <Compile Include="HorizontalDividerFitter.cs" />
-    <Compile Include="InputFieldSubmitEvents.cs" />
-    <Compile Include="KeyBindDisplay.cs" />
-    <Compile Include="LetterSpacing.cs" />
-    <Compile Include="MatchColor.cs" />
-    <Compile Include="MessageLogElement.cs" />
-    <Compile Include="MimicVanillaCraftingTab.cs" />
-    <Compile Include="PlayerStatBlock.cs" />
-    <Compile Include="PvpToggle.cs" />
-    <Compile Include="QualityIndicator.cs" />
-    <Compile Include="FoodIndicator.cs" />
-    <Compile Include="PlayerNameText.cs" />
-    <Compile Include="PlayerPanelEffectController.cs" />
-    <Compile Include="PlayerPanelFoodController.cs" />
-    <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="PvpTabButton.cs" />
-    <Compile Include="RandomLoadingImage.cs" />
-    <Compile Include="RecipeListItem.cs" />
-    <Compile Include="SelectedCharacterInfo.cs" />
-    <Compile Include="ShowIfSelected.cs" />
-    <Compile Include="SkillsPanelController.cs" />
-    <Compile Include="SkillsPanelSkillController.cs" />
-    <Compile Include="TabButton.cs" />
-    <Compile Include="TestScript.cs" />
-    <Compile Include="UIGradient\UIGradient.cs" />
-    <Compile Include="UIGradient\Vector2Extension.cs" />
-    <Compile Include="UpgradeRequirementsWireFrame.cs" />
-    <Compile Include="WorkbenchPanelController.cs" />
+    <Compile Remove="UIEffect.cs" />
+    <Compile Remove="UIDissolve.cs" />
+    <Compile Remove="UIHsvModifier.cs" />
+    <Compile Remove="UIFlip.cs" />
+    <Compile Remove="UIGradient.cs" />
   </ItemGroup>
-
-  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
-
-  <!-- AssemblyPublicizer.MSBuild — автоматически публикует Valheim assemblies -->
-  <Import Project="..\packages\BepInEx.AssemblyPublicizer.MSBuild.0.4.2\build\BepInEx.AssemblyPublicizer.MSBuild.targets"
-          Condition="Exists('..\packages\BepInEx.AssemblyPublicizer.MSBuild.0.4.2\build\BepInEx.AssemblyPublicizer.MSBuild.targets')" />
 
   <!-- После сборки — копируем Unity.Auga.dll в Unity проект -->
-  <PropertyGroup>
-    <PostBuildEvent>xcopy "$(TargetDir)$(TargetFileName)" "$(SolutionDir)AugaUnity\Assets\ExternalLibraries\" /q /y /i</PostBuildEvent>
-  </PropertyGroup>
+  <Target Name="CopyToUnity" AfterTargets="Build">
+    <Exec Command="xcopy &quot;$(TargetDir)$(TargetFileName)&quot; &quot;$(SolutionDir)AugaUnity\Assets\ExternalLibraries\&quot; /q /y /i"
+          Condition="Exists('$(SolutionDir)AugaUnity\Assets\ExternalLibraries\')" />
+  </Target>
 
 </Project>

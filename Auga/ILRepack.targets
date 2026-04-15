@@ -1,12 +1,16 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-    <Target Name="ILRepacker" AfterTargets="Build">
+    <Target Name="ILRepacker" AfterTargets="Build" Condition="'$(Configuration)' == 'Release'">
         <ItemGroup>
             <InputAssemblies Include="$(TargetPath)" />
-            <InputAssemblies Condition=" '$(Configuration)|$(Platform)' != 'API|AnyCPU' " Include="$(OutputPath)APIManager.dll" />
+            <InputAssemblies Include="$(OutputPath)APIManager.dll" />
             <LibraryPath Include="$(OutputPath)" />
-            <LibraryPath Include="$(SolutionDir)\..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\Valheim\valheim_Data\Managed\" />
+            <LibraryPath Include="$(ValheimManagedDir)" />
         </ItemGroup>
-        <ILRepack Parallel="true" DebugInfo="true" Internalize="true" InputAssemblies="@(InputAssemblies)" OutputFile="$(TargetPath)" TargetKind="SameAsPrimaryAssembly" LibraryPath="@(LibraryPath)" />
+        <ILRepack Parallel="true" DebugInfo="true" Internalize="true"
+                  InputAssemblies="@(InputAssemblies)"
+                  OutputFile="$(TargetPath)"
+                  TargetKind="SameAsPrimaryAssembly"
+                  LibraryPath="@(LibraryPath)" />
     </Target>
 </Project>

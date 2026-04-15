@@ -1,259 +1,217 @@
-<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+<Project Sdk="Microsoft.NET.Sdk">
 
   <!-- Пути к Valheim и BepInEx -->
   <Import Project="..\Valheim.props" />
 
   <PropertyGroup>
-    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
-    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{BCC7DD31-D943-4684-800E-176A97DDDB8F}</ProjectGuid>
-    <OutputType>Library</OutputType>
-    <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Auga</RootNamespace>
+    <TargetFramework>net472</TargetFramework>
     <AssemblyName>Auga</AssemblyName>
-    <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
-    <FileAlignment>512</FileAlignment>
-    <Deterministic>true</Deterministic>
-    <NuGetPackageImportStamp>
-    </NuGetPackageImportStamp>
+    <RootNamespace>Auga</RootNamespace>
+    <OutputType>Library</OutputType>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <LangVersion>10</LangVersion>
+    <Deterministic>true</Deterministic>
+    <Nullable>disable</Nullable>
+    <!-- Отключаем авто-генерацию AssemblyInfo — Properties\AssemblyInfo.cs уже есть -->
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    <ProjectGuid>{BCC7DD31-D943-4684-800E-176A97DDDB8F}</ProjectGuid>
   </PropertyGroup>
 
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+  <!-- API-конфигурация: только публичный API-слой -->
+  <PropertyGroup Condition="'$(Configuration)' == 'API'">
+    <AssemblyName>AugaAPI</AssemblyName>
+    <DefineConstants>API;TRACE</DefineConstants>
+    <Optimize>false</Optimize>
+    <DebugType>pdbonly</DebugType>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)' == 'Debug'">
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
-    <OutputPath>bin\Debug\</OutputPath>
     <DefineConstants>DEBUG;TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
 
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+  <PropertyGroup Condition="'$(Configuration)' == 'Release'">
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
-    <OutputPath>bin\Release\</OutputPath>
     <DefineConstants>TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
 
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'API|AnyCPU'">
-    <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
-    <AssemblyName>AugaAPI</AssemblyName>
-    <DebugSymbols>true</DebugSymbols>
-    <DebugType>pdbonly</DebugType>
-    <OutputPath>bin\API\</OutputPath>
-    <DefineConstants>API;TRACE</DefineConstants>
-    <Optimize>false</Optimize>
-    <PlatformTarget>AnyCPU</PlatformTarget>
-    <ErrorReport>prompt</ErrorReport>
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-  </PropertyGroup>
-
+  <!-- NuGet пакеты -->
   <ItemGroup>
-    <!-- BepInEx core -->
+    <PackageReference Include="BepInEx.AssemblyPublicizer.MSBuild" Version="0.4.2" />
+    <PackageReference Include="ILRepack.Lib.MSBuild.Task" Version="2.0.18.2" />
+  </ItemGroup>
+
+  <!-- Ссылки на BepInEx -->
+  <ItemGroup>
     <Reference Include="0Harmony">
       <HintPath>$(BepInExCoreDir)\0Harmony.dll</HintPath>
+      <Private>false</Private>
     </Reference>
     <Reference Include="BepInEx">
       <HintPath>$(BepInExCoreDir)\BepInEx.dll</HintPath>
+      <Private>false</Private>
     </Reference>
 
-    <!-- APIManager (положи APIManager.dll в папку Libs\) -->
+    <!-- APIManager — stub или настоящая DLL в Libs\ -->
     <Reference Include="APIManager">
       <HintPath>..\Libs\APIManager.dll</HintPath>
+      <Private>true</Private>
     </Reference>
 
-    <!-- Valheim assemblies — публикуются автоматически через BepInEx.AssemblyPublicizer.MSBuild -->
+    <!-- Valheim assemblies — публикуются через BepInEx.AssemblyPublicizer.MSBuild -->
     <Reference Include="assembly_guiutils">
       <HintPath>$(ValheimManagedDir)\assembly_guiutils.dll</HintPath>
       <Publicize>true</Publicize>
+      <Private>false</Private>
     </Reference>
-    <!-- assembly_steamworks переименован в новых версиях Valheim -->
     <Reference Include="com.rlabrecque.steamworks.net">
       <HintPath>$(ValheimManagedDir)\com.rlabrecque.steamworks.net.dll</HintPath>
+      <Private>false</Private>
     </Reference>
     <Reference Include="assembly_utils">
       <HintPath>$(ValheimManagedDir)\assembly_utils.dll</HintPath>
       <Publicize>true</Publicize>
+      <Private>false</Private>
     </Reference>
     <Reference Include="assembly_valheim">
       <HintPath>$(ValheimManagedDir)\assembly_valheim.dll</HintPath>
       <Publicize>true</Publicize>
+      <Private>false</Private>
     </Reference>
-    <!-- ui_lib переименован в gui_framework в новых версиях Valheim -->
     <Reference Include="gui_framework">
       <HintPath>$(ValheimManagedDir)\gui_framework.dll</HintPath>
       <Publicize>true</Publicize>
+      <Private>false</Private>
     </Reference>
 
-    <!-- UnityEngine — берём из valheim_Data\Managed (там полные, нестриппнутые) -->
+    <!-- UnityEngine -->
     <Reference Include="UnityEngine">
       <HintPath>$(ValheimManagedDir)\UnityEngine.dll</HintPath>
+      <Private>false</Private>
     </Reference>
     <Reference Include="UnityEngine.AnimationModule">
       <HintPath>$(ValheimManagedDir)\UnityEngine.AnimationModule.dll</HintPath>
+      <Private>false</Private>
     </Reference>
     <Reference Include="UnityEngine.AssetBundleModule">
       <HintPath>$(ValheimManagedDir)\UnityEngine.AssetBundleModule.dll</HintPath>
+      <Private>false</Private>
     </Reference>
     <Reference Include="UnityEngine.AudioModule">
       <HintPath>$(ValheimManagedDir)\UnityEngine.AudioModule.dll</HintPath>
+      <Private>false</Private>
     </Reference>
     <Reference Include="UnityEngine.CoreModule">
       <HintPath>$(ValheimManagedDir)\UnityEngine.CoreModule.dll</HintPath>
-    </Reference>
-    <Reference Include="UnityEngine.ImageConversionModule">
-      <HintPath>$(ValheimManagedDir)\UnityEngine.ImageConversionModule.dll</HintPath>
+      <Private>false</Private>
     </Reference>
     <Reference Include="UnityEngine.InputLegacyModule">
       <HintPath>$(ValheimManagedDir)\UnityEngine.InputLegacyModule.dll</HintPath>
+      <Private>false</Private>
     </Reference>
     <Reference Include="UnityEngine.TextRenderingModule">
       <HintPath>$(ValheimManagedDir)\UnityEngine.TextRenderingModule.dll</HintPath>
+      <Private>false</Private>
     </Reference>
     <Reference Include="UnityEngine.UI">
       <HintPath>$(ValheimManagedDir)\UnityEngine.UI.dll</HintPath>
+      <Private>false</Private>
     </Reference>
     <Reference Include="UnityEngine.UIModule">
       <HintPath>$(ValheimManagedDir)\UnityEngine.UIModule.dll</HintPath>
+      <Private>false</Private>
     </Reference>
     <Reference Include="Unity.TextMeshPro">
       <HintPath>$(ValheimManagedDir)\Unity.TextMeshPro.dll</HintPath>
+      <Private>false</Private>
     </Reference>
 
-    <!-- Локальные зависимости -->
+    <!-- fastJSON -->
     <Reference Include="fastJSON">
       <HintPath>..\Libs\fastJSON.dll</HintPath>
+      <Private>true</Private>
     </Reference>
-
-    <Reference Include="System" />
-    <Reference Include="System.Core" />
-    <Reference Include="System.Xml.Linq" />
-    <Reference Include="System.Data.DataSetExtensions" />
-    <Reference Include="Microsoft.CSharp" />
-    <Reference Include="System.Data" />
-    <Reference Include="System.Net.Http" />
-    <Reference Include="System.Xml" />
   </ItemGroup>
 
+  <!-- Исключаем файлы с проблемами компиляции или не входящие в сборку -->
   <ItemGroup>
-    <Compile Include="API.cs" />
-    <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="API.Common.cs" />
+    <Compile Remove="API.External.cs" />
   </ItemGroup>
 
-  <ItemGroup Condition=" '$(Configuration)|$(Platform)' != 'API|AnyCPU' ">
-    <Compile Include="Auga.cs" />
-    <Compile Include="MovableHudElement.cs" />
-    <Compile Include="AugaLog_Hooks.cs" />
-    <Compile Include="Chat_Setup.cs" />
-    <Compile Include="Connection_Setup.cs" />
-    <Compile Include="DamageText_Setup.cs" />
-    <Compile Include="Extensions.cs" />
-    <Compile Include="GuiBar_Patch.cs" />
-    <Compile Include="Hud_Setup.cs" />
-    <Compile Include="LastHitTracker.cs" />
-    <Compile Include="MainMenu_Setup.cs" />
-    <Compile Include="MessageHud_Setup.cs" />
-    <Compile Include="PauseMenu_Setup.cs" />
-    <Compile Include="PlayerInventory_Setup.cs" />
-    <Compile Include="Settings_Setup.cs" />
-    <Compile Include="SetupHelper.cs" />
-    <Compile Include="Store_Setup.cs" />
-    <Compile Include="TextInput_Setup.cs" />
-    <Compile Include="EnemeyHud_Setup.cs" />
-    <Compile Include="TextViewer_Setup.cs" />
-    <Compile Include="Text_Patch.cs" />
-    <Compile Include="UITooltip_Patch.cs" />
-    <Compile Include="Minimap_Setup.cs" />
-    <Compile Include="Barber_Setup.cs" />
-    <Compile Include="Compat\Chatter.cs" />
-    <Compile Include="Compat\Jewelcrafting.cs" />
-    <Compile Include="Compat\SearsCatalog.cs" />
-    <Compile Include="SkillsDialog_Patch.cs" />
-    <Compile Include="Utilities\TranspilerHelpers.cs" />
+  <!-- В API-конфигурации исключаем все файлы, не относящиеся к публичному API -->
+  <ItemGroup Condition="'$(Configuration)' == 'API'">
+    <Compile Remove="Auga.cs" />
+    <Compile Remove="MovableHudElement.cs" />
+    <Compile Remove="AugaLog_Hooks.cs" />
+    <Compile Remove="Chat_Setup.cs" />
+    <Compile Remove="Connection_Setup.cs" />
+    <Compile Remove="DamageText_Setup.cs" />
+    <Compile Remove="Extensions.cs" />
+    <Compile Remove="GuiBar_Patch.cs" />
+    <Compile Remove="Hud_Setup.cs" />
+    <Compile Remove="LastHitTracker.cs" />
+    <Compile Remove="MainMenu_Setup.cs" />
+    <Compile Remove="MessageHud_Setup.cs" />
+    <Compile Remove="PauseMenu_Setup.cs" />
+    <Compile Remove="PlayerInventory_Setup.cs" />
+    <Compile Remove="Settings_Setup.cs" />
+    <Compile Remove="SetupHelper.cs" />
+    <Compile Remove="Store_Setup.cs" />
+    <Compile Remove="TextInput_Setup.cs" />
+    <Compile Remove="EnemeyHud_Setup.cs" />
+    <Compile Remove="TextViewer_Setup.cs" />
+    <Compile Remove="Text_Patch.cs" />
+    <Compile Remove="UITooltip_Patch.cs" />
+    <Compile Remove="Minimap_Setup.cs" />
+    <Compile Remove="Barber_Setup.cs" />
+    <Compile Remove="Compat\Chatter.cs" />
+    <Compile Remove="Compat\Jewelcrafting.cs" />
+    <Compile Remove="Compat\SearsCatalog.cs" />
+    <Compile Remove="SkillsDialog_Patch.cs" />
+    <Compile Remove="Utilities\TranspilerHelpers.cs" />
   </ItemGroup>
 
-  <ItemGroup Condition=" '$(Configuration)|$(Platform)' != 'API|AnyCPU' ">
-    <None Include="manifest.json" />
-    <None Include="packages.config" />
-    <None Include="README.md" />
-    <None Include="translations.json" />
-  </ItemGroup>
-
-  <ItemGroup Condition=" '$(Configuration)|$(Platform)' != 'API|AnyCPU' ">
+  <!-- Встроенные ресурсы (только для не-API сборки) -->
+  <ItemGroup Condition="'$(Configuration)' != 'API'">
     <EmbeddedResource Include="..\AugaUnity\AssetBundles\augaassets">
       <Link>augaassets</Link>
     </EmbeddedResource>
-  </ItemGroup>
-
-  <ItemGroup Condition=" '$(Configuration)|$(Platform)' != 'API|AnyCPU' ">
-    <EmbeddedResource Include="..\AugaUnityLib\bin\Debug\Unity.Auga.dll">
+    <EmbeddedResource Include="..\AugaUnityLib\bin\Debug\net472\Unity.Auga.dll">
       <Link>Unity.Auga.dll</Link>
     </EmbeddedResource>
-  </ItemGroup>
-
-  <ItemGroup Condition=" '$(Configuration)|$(Platform)' != 'API|AnyCPU' ">
-    <ProjectReference Include="..\AugaUnityLib\AugaUnityLib.csproj">
-      <Project>{5b19eb03-f699-46bc-afaf-2a2e78e1f6c5}</Project>
-      <Name>AugaUnityLib</Name>
-    </ProjectReference>
-  </ItemGroup>
-
-  <ItemGroup Condition=" '$(Configuration)|$(Platform)' != 'API|AnyCPU' ">
     <EmbeddedResource Include="..\Libs\fastJSON.dll">
       <Link>fastJSON.dll</Link>
     </EmbeddedResource>
-  </ItemGroup>
-
-  <ItemGroup>
-    <Content Include="ILRepack.targets" />
-    <EmbeddedResource Condition=" '$(Configuration)|$(Platform)' != 'API|AnyCPU' " Include="..\Libs\APIManager.dll">
+    <EmbeddedResource Include="..\Libs\APIManager.dll">
       <Link>APIManager.dll</Link>
     </EmbeddedResource>
-    <Content Include="..\CHANGELOG.md">
-      <Link>CHANGELOG.md</Link>
-    </Content>
   </ItemGroup>
 
-  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <!-- ProjectReference к AugaUnityLib (только для не-API) -->
+  <ItemGroup Condition="'$(Configuration)' != 'API'">
+    <ProjectReference Include="..\AugaUnityLib\AugaUnityLib.csproj" />
+  </ItemGroup>
 
-  <!-- AssemblyPublicizer.MSBuild — автоматически публикует Valheim assemblies -->
-  <Import Project="..\packages\BepInEx.AssemblyPublicizer.MSBuild.0.4.2\build\BepInEx.AssemblyPublicizer.MSBuild.targets"
-          Condition="Exists('..\packages\BepInEx.AssemblyPublicizer.MSBuild.0.4.2\build\BepInEx.AssemblyPublicizer.MSBuild.targets')" />
+  <!--
+    ILRepack.Lib.MSBuild.Task (PackageReference выше) автоматически импортирует ILRepack.targets
+    из директории проекта — явный <Import> не нужен и вызывает MSB4011.
+    Переименуем наш файл в ILRepack.targets чтобы пакет его подхватил автоматически.
+  -->
 
-  <!-- ILRepack — объединяет зависимости в одну DLL -->
-  <Import Project="..\packages\ILRepack.Lib.MSBuild.Task.2.0.18.2\build\ILRepack.Lib.MSBuild.Task.targets"
-          Condition="Exists('..\packages\ILRepack.Lib.MSBuild.Task.2.0.18.2\build\ILRepack.Lib.MSBuild.Task.targets')" />
-
-  <!-- Копирование скомпилированного мода в папку плагинов Valheim -->
-  <Target Name="Copy" AfterTargets="ILRepack">
-    <Exec Condition=" '$(Configuration)|$(Platform)' != 'API|AnyCPU' "
-          Command="xcopy &quot;$(TargetDir)$(TargetFileName)&quot; &quot;$(ValheimPluginsDir)\$(ProjectName)\&quot; /q /y /i" />
-    <Exec Condition=" '$(Configuration)|$(Platform)' == 'API|AnyCPU' "
-          Command="xcopy &quot;$(TargetDir)$(TargetFileName)&quot; &quot;$(SolutionDir)Libs\AugaAPI\&quot; /q /y /i" />
+  <!-- Копирование мода в папку плагинов Valheim -->
+  <Target Name="CopyToValheim" AfterTargets="ILRepacker" Condition="'$(Configuration)' != 'API'">
+    <Exec Command="xcopy &quot;$(TargetDir)$(TargetFileName)&quot; &quot;$(ValheimPluginsDir)\$(ProjectName)\&quot; /q /y /i"
+          Condition="'$(ValheimPluginsDir)' != ''" />
+    <Exec Command="xcopy &quot;$(ProjectDir)translations.json&quot; &quot;$(ValheimPluginsDir)\$(ProjectName)\&quot; /q /y /i"
+          Condition="'$(ValheimPluginsDir)' != '' And Exists('$(ProjectDir)translations.json')" />
   </Target>
 
-  <PropertyGroup>
-    <PostBuildEvent Condition=" '$(Configuration)|$(Platform)' != 'API|AnyCPU' ">
-      xcopy "$(ProjectDir)translations.json" "$(ValheimPluginsDir)\$(ProjectName)\" /q /y /i
-    </PostBuildEvent>
-  </PropertyGroup>
-
-  <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
-    <PropertyGroup>
-      <ErrorText>NuGet пакет отсутствует: {0}. Выполни "Restore NuGet Packages" в Visual Studio.</ErrorText>
-    </PropertyGroup>
-    <Error Condition="!Exists('..\packages\ILRepack.Lib.MSBuild.Task.2.0.18.2\build\ILRepack.Lib.MSBuild.Task.targets')"
-           Text="$([System.String]::Format('$(ErrorText)', 'ILRepack.Lib.MSBuild.Task.2.0.18.2'))" />
-    <Error Condition="!Exists('..\packages\BepInEx.AssemblyPublicizer.MSBuild.0.4.2\build\BepInEx.AssemblyPublicizer.MSBuild.targets')"
-           Text="$([System.String]::Format('$(ErrorText)', 'BepInEx.AssemblyPublicizer.MSBuild.0.4.2'))" />
+  <!-- Для API-сборки: копируем в Libs\AugaAPI\ -->
+  <Target Name="CopyAPIToLibs" AfterTargets="Build" Condition="'$(Configuration)' == 'API'">
+    <Exec Command="xcopy &quot;$(TargetDir)$(TargetFileName)&quot; &quot;$(SolutionDir)Libs\AugaAPI\&quot; /q /y /i" />
   </Target>
 
 </Project>

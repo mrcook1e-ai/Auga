@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Linq;
 using AugaUnity;
 using HarmonyLib;
@@ -14,8 +14,13 @@ namespace Auga
         public static TMP_Text ResolutionSelectionText;
         public static Dropdown LanguageDropdown;
         public static TMP_Text LanguageSelectionText;
-        
-        
+
+        // TODO: The Settings class was fully redesigned in current Valheim (new Input System + new Settings UI).
+        // Fields m_resButtonText, m_language, m_resolutions, m_selectedRes, m_languageKey and
+        // method UpdateValidResolutions no longer exist. The resolution/language dropdown setup
+        // needs to be re-implemented for the new Settings UI structure.
+
+        /*
         [HarmonyPatch(typeof(Settings), nameof(Settings.Awake))]
         [HarmonyPostfix]
         public static void Awake_Postfix(Settings __instance)
@@ -45,7 +50,7 @@ namespace Auga
         {
             if (index == 0)
                 return;
-            
+
             Settings.instance.m_selectedRes = Settings.instance.m_resolutions[index-1];
             ResolutionSelectionText.text = ResolutionDropdown.options[index].text;
         }
@@ -63,10 +68,11 @@ namespace Auga
         {
             if (index == 0)
                 return;
-            
+
             Settings.instance.m_languageKey = Localization.instance.GetLanguages()[index-1];
             LanguageSelectionText.text = LanguageDropdown.options[index].text;
         }
+        */
 
         /*[HarmonyPatch(typeof(Settings), nameof(Settings.SetQualityText))]
         [HarmonyPrefix]
@@ -78,6 +84,9 @@ namespace Auga
             return false;
         }*/
 
+        // TODO: Settings.UpdateBindings was removed in current Valheim (new Input System).
+        // Need to find replacement patch target for key binding display updates.
+        /*
         [HarmonyPatch(typeof(Settings), nameof(Settings.UpdateBindings))]
         [HarmonyPrefix]
         public static bool UpdateBindings_Prefix(Settings __instance)
@@ -102,9 +111,10 @@ namespace Auga
                     }
                 }
             }
-            
+
             Settings.UpdateGamepadMap(__instance.m_gamepadRoot, __instance.m_alternativeGlyphs.isOn, ZInput.InputLayout, true);
             return false;
         }
+        */
     }
 }
