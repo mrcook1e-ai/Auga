@@ -1,6 +1,10 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+
+  <!-- Пути к Valheim и BepInEx -->
+  <Import Project="..\Valheim.props" />
+
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
@@ -14,7 +18,9 @@
     <Deterministic>true</Deterministic>
     <NuGetPackageImportStamp>
     </NuGetPackageImportStamp>
+    <AutoGenerateBindingRedirects>false</AutoGenerateBindingRedirects>
   </PropertyGroup>
+
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
@@ -25,6 +31,7 @@
     <WarningLevel>4</WarningLevel>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
+
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
@@ -33,74 +40,71 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
-  <PropertyGroup>
-    <AutoGenerateBindingRedirects>false</AutoGenerateBindingRedirects>
-  </PropertyGroup>
+
   <ItemGroup>
-    <Reference Include="assembly_guiutils_publicized">
-      <HintPath>M:\Code\VapokModBase\References\Valheim\0.217.30\assembly_guiutils_publicized.dll</HintPath>
+    <!-- Valheim assemblies — публикуются автоматически через BepInEx.AssemblyPublicizer.MSBuild -->
+    <Reference Include="assembly_guiutils">
+      <HintPath>$(ValheimManagedDir)\assembly_guiutils.dll</HintPath>
+      <Publicize>true</Publicize>
     </Reference>
-    <Reference Include="assembly_postprocessing_publicized">
-      <HintPath>M:\Code\VapokModBase\References\Valheim\0.217.30\assembly_postprocessing_publicized.dll</HintPath>
+    <Reference Include="assembly_postprocessing">
+      <HintPath>$(ValheimManagedDir)\assembly_postprocessing.dll</HintPath>
+      <Publicize>true</Publicize>
     </Reference>
-    <Reference Include="ui_lib_publicized, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>M:\Code\VapokModBase\References\Valheim\0.217.30\ui_lib_publicized.dll</HintPath>
+    <Reference Include="assembly_sunshafts">
+      <HintPath>$(ValheimManagedDir)\assembly_sunshafts.dll</HintPath>
+      <Publicize>true</Publicize>
     </Reference>
-    <Reference Include="ui_lib_publicized, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>M:\Code\VapokModBase\References\Valheim\0.217.30\ui_lib_publicized.dll</HintPath>
+    <Reference Include="assembly_utils">
+      <HintPath>$(ValheimManagedDir)\assembly_utils.dll</HintPath>
+      <Publicize>true</Publicize>
     </Reference>
-    <Reference Include="assembly_sunshafts_publicized">
-      <HintPath>M:\Code\VapokModBase\References\Valheim\0.217.30\assembly_sunshafts_publicized.dll</HintPath>
+    <Reference Include="assembly_valheim">
+      <HintPath>$(ValheimManagedDir)\assembly_valheim.dll</HintPath>
+      <Publicize>true</Publicize>
     </Reference>
-    <Reference Include="assembly_utils_publicized">
-      <HintPath>M:\Code\VapokModBase\References\Valheim\0.217.30\assembly_utils_publicized.dll</HintPath>
+    <!-- ui_lib переименован в gui_framework в новых версиях Valheim -->
+    <Reference Include="gui_framework">
+      <HintPath>$(ValheimManagedDir)\gui_framework.dll</HintPath>
+      <Publicize>true</Publicize>
     </Reference>
-    <Reference Include="assembly_valheim_publicized">
-      <HintPath>M:\Code\VapokModBase\References\Valheim\0.217.30\assembly_valheim_publicized.dll</HintPath>
-    </Reference>
-    <Reference Include="System" />
-    <Reference Include="System.Core" />
+
+    <!-- UnityEngine — берём из valheim_Data\Managed (там полные, нестриппнутые) -->
     <Reference Include="UnityEngine">
-      <HintPath>M:\Code\VapokModBase\References\BepInEx\5.4.2201\unstripped_corlib\UnityEngine.dll</HintPath>
+      <HintPath>$(ValheimManagedDir)\UnityEngine.dll</HintPath>
     </Reference>
-    <Reference Include="UnityEngine.AudioModule, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>M:\Code\VapokModBase\References\BepInEx\5.4.2201\unstripped_corlib\UnityEngine.AudioModule.dll</HintPath>
+    <Reference Include="UnityEngine.AudioModule">
+      <HintPath>$(ValheimManagedDir)\UnityEngine.AudioModule.dll</HintPath>
     </Reference>
-    <Reference Include="UnityEngine.CoreModule, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>M:\Code\VapokModBase\References\BepInEx\5.4.2201\unstripped_corlib\UnityEngine.CoreModule.dll</HintPath>
+    <Reference Include="UnityEngine.CoreModule">
+      <HintPath>$(ValheimManagedDir)\UnityEngine.CoreModule.dll</HintPath>
     </Reference>
-    <Reference Include="UnityEngine.ImageConversionModule, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>M:\Code\VapokModBase\References\BepInEx\5.4.2201\unstripped_corlib\UnityEngine.ImageConversionModule.dll</HintPath>
+    <Reference Include="UnityEngine.ImageConversionModule">
+      <HintPath>$(ValheimManagedDir)\UnityEngine.ImageConversionModule.dll</HintPath>
     </Reference>
-    <Reference Include="UnityEngine.IMGUIModule, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>M:\Code\VapokModBase\References\BepInEx\5.4.2201\unstripped_corlib\UnityEngine.IMGUIModule.dll</HintPath>
+    <Reference Include="UnityEngine.IMGUIModule">
+      <HintPath>$(ValheimManagedDir)\UnityEngine.IMGUIModule.dll</HintPath>
     </Reference>
-    <Reference Include="UnityEngine.InputLegacyModule, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>M:\Code\VapokModBase\References\BepInEx\5.4.2201\unstripped_corlib\UnityEngine.InputLegacyModule.dll</HintPath>
+    <Reference Include="UnityEngine.InputLegacyModule">
+      <HintPath>$(ValheimManagedDir)\UnityEngine.InputLegacyModule.dll</HintPath>
     </Reference>
-    <Reference Include="UnityEngine.TextRenderingModule, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>M:\Code\VapokModBase\References\BepInEx\5.4.2201\unstripped_corlib\UnityEngine.TextRenderingModule.dll</HintPath>
+    <Reference Include="UnityEngine.TextRenderingModule">
+      <HintPath>$(ValheimManagedDir)\UnityEngine.TextRenderingModule.dll</HintPath>
     </Reference>
-    <Reference Include="UnityEngine.UI, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>M:\Code\VapokModBase\References\BepInEx\5.4.2201\unstripped_corlib\UnityEngine.UI.dll</HintPath>
+    <Reference Include="UnityEngine.UI">
+      <HintPath>$(ValheimManagedDir)\UnityEngine.UI.dll</HintPath>
     </Reference>
-    <Reference Include="UnityEngine.UIModule, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>M:\Code\VapokModBase\References\BepInEx\5.4.2201\unstripped_corlib\UnityEngine.UIModule.dll</HintPath>
+    <Reference Include="UnityEngine.UIModule">
+      <HintPath>$(ValheimManagedDir)\UnityEngine.UIModule.dll</HintPath>
     </Reference>
     <Reference Include="Unity.TextMeshPro">
-      <HintPath>M:\Code\VapokModBase\References\BepInEx\5.4.2201\unstripped_corlib\Unity.TextMeshPro.dll</HintPath>
+      <HintPath>$(ValheimManagedDir)\Unity.TextMeshPro.dll</HintPath>
     </Reference>
+
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
   </ItemGroup>
+
   <ItemGroup>
     <Compile Include="AddItemIconMaterial.cs" />
     <Compile Include="AlwaysUpper.cs" />
@@ -166,8 +170,16 @@
     <Compile Include="UpgradeRequirementsWireFrame.cs" />
     <Compile Include="WorkbenchPanelController.cs" />
   </ItemGroup>
+
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+
+  <!-- AssemblyPublicizer.MSBuild — автоматически публикует Valheim assemblies -->
+  <Import Project="..\packages\BepInEx.AssemblyPublicizer.MSBuild.0.4.2\build\BepInEx.AssemblyPublicizer.MSBuild.targets"
+          Condition="Exists('..\packages\BepInEx.AssemblyPublicizer.MSBuild.0.4.2\build\BepInEx.AssemblyPublicizer.MSBuild.targets')" />
+
+  <!-- После сборки — копируем Unity.Auga.dll в Unity проект -->
   <PropertyGroup>
     <PostBuildEvent>xcopy "$(TargetDir)$(TargetFileName)" "$(SolutionDir)AugaUnity\Assets\ExternalLibraries\" /q /y /i</PostBuildEvent>
   </PropertyGroup>
+
 </Project>
