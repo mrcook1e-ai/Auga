@@ -25,6 +25,26 @@ namespace Auga
     [HarmonyPatch(typeof(FejdStartup), nameof(FejdStartup.Awake))]
     public static class FejdStartup_Awake_Patch
     {
+        // Null-safe Find + GetComponent. Logs warning if path or component missing.
+        private static T FC<T>(Transform root, string path) where T : Component
+        {
+            if (root == null) { Auga.LogWarning($"FC<{typeof(T).Name}>: root is null (path={path})"); return null; }
+            var t = root.Find(path);
+            if (t == null) { Auga.LogWarning($"FC<{typeof(T).Name}>: path not found: {path}"); return null; }
+            var c = t.GetComponent<T>();
+            if (c == null) Auga.LogWarning($"FC<{typeof(T).Name}>: no component on: {path}");
+            return c;
+        }
+
+        // Null-safe Find -> GameObject.
+        private static GameObject FO(Transform root, string path)
+        {
+            if (root == null) { Auga.LogWarning($"FO: root is null (path={path})"); return null; }
+            var t = root.Find(path);
+            if (t == null) { Auga.LogWarning($"FO: path not found: {path}"); return null; }
+            return t.gameObject;
+        }
+
         public static void Prefix(FejdStartup __instance)
         {
             ZInput.Initialize();
@@ -36,135 +56,166 @@ namespace Auga
                 originalLogo.SetParent(__instance.transform, true);
 
             var mainMenu = __instance.Replace("Menu", Auga.Assets.MainMenuPrefab);
+            if (mainMenu == null) { Auga.LogError("Failed to replace Menu"); return; }
             if (originalLogo != null)
                 originalLogo.SetParent(mainMenu, true);
 
             __instance.m_mainMenu = mainMenu.gameObject;
-            __instance.m_menuList = mainMenu.Find("MenuList").gameObject;
-            __instance.m_menuSelectedButton = mainMenu.Find("MenuList/StartGame").GetComponent<Button>();
-            __instance.m_versionLabel = mainMenu.Find("Version").GetComponent<TMP_Text>();
-            __instance.m_betaText = mainMenu.Find("DummyObjects/Dummy").gameObject;
-            __instance.m_ndaPanel = mainMenu.Find("DummyObjects/Dummy").gameObject;
-            SetButtonListener(__instance.m_mainMenu.transform, "MenuList/StartGame", __instance.OnStartGame);
-            SetButtonListener(__instance.m_mainMenu.transform, "MenuList/Settings", __instance.OnButtonSettings);
-            SetButtonListener(__instance.m_mainMenu.transform, "MenuList/Credits", __instance.OnCredits);
-            SetButtonListener(__instance.m_mainMenu.transform, "MenuList/Exit", __instance.OnAbort);
+            __instance.m_menuList = FO(mainMenu, "MenuList");
+            __instance.m_menuSelectedButton = FC<Button>(mainMenu, "MenuList/StartGame");
+            __instance.m_versionLabel = FC<TMP_Text>(mainMenu, "Version");
+            __instance.m_betaText = FO(mainMenu, "DummyObjects/Dummy");
+            __instance.m_ndaPanel = FO(mainMenu, "DummyObjects/Dummy");
+            SetButtonListener(mainMenu, "MenuList/StartGame", __instance.OnStartGame);
+            SetButtonListener(mainMenu, "MenuList/Settings", __instance.OnButtonSettings);
+            SetButtonListener(mainMenu, "MenuList/Credits", __instance.OnCredits);
+            SetButtonListener(mainMenu, "MenuList/Exit", __instance.OnAbort);
 
             var connectionFailedDialog = __instance.Replace("ConnectionFailed", Auga.Assets.MainMenuPrefab);
-            __instance.m_connectionFailedPanel = connectionFailedDialog.gameObject;
-            __instance.m_connectionFailedError = connectionFailedDialog.Find("Text").GetComponent<TMP_Text>();
-            SetButtonListener(connectionFailedDialog, "ButtonYes", __instance.OnConnectionFailedOk);
+            if (connectionFailedDialog != null)
+            {
+                __instance.m_connectionFailedPanel = connectionFailedDialog.gameObject;
+                __instance.m_connectionFailedError = FC<TMP_Text>(connectionFailedDialog, "Text");
+                SetButtonListener(connectionFailedDialog, "ButtonYes", __instance.OnConnectionFailedOk);
+            }
 
             var credits = __instance.Replace("Credits", Auga.Assets.MainMenuPrefab);
-            __instance.m_creditsPanel = credits.gameObject;
-            __instance.m_creditsList = (RectTransform)credits.Find("ContactInfo");
-            SetButtonListener(__instance.m_creditsPanel.transform, "Back-panel/ButtonSettings", __instance.OnCreditsBack);
+            if (credits != null)
+            {
+                __instance.m_creditsPanel = credits.gameObject;
+                __instance.m_creditsList = credits.Find("ContactInfo") as RectTransform;
+                SetButtonListener(credits, "Back-panel/ButtonSettings", __instance.OnCreditsBack);
+            }
 
             __instance.Replace("BLACK", Auga.Assets.MainMenuPrefab);
 
-            __instance.m_loading = __instance.Replace("Loading", Auga.Assets.MainMenuPrefab).gameObject;
-            __instance.m_loading.SetActive(false);
+            var loading = __instance.Replace("Loading", Auga.Assets.MainMenuPrefab);
+            if (loading != null)
+            {
+                __instance.m_loading = loading.gameObject;
+                __instance.m_loading.SetActive(false);
+            }
 
+            // ---- SelectCharacter ----
             var charSelect = __instance.Replace("CharacterSelection/SelectCharacter", Auga.Assets.MainMenuPrefab);
-            __instance.m_selectCharacterPanel = charSelect.gameObject;
-            __instance.m_removeCharacterDialog = charSelect.Find("RemoveCharacterDialog").gameObject;
-            __instance.m_removeCharacterName = charSelect.Find("RemoveCharacterDialog/Text").GetComponent<TMP_Text>();
-            __instance.m_csRemoveButton = charSelect.Find("Panel/Inset/RemoveButton").GetComponent<Button>();
-            __instance.m_csStartButton = charSelect.Find("Panel/Start").GetComponent<Button>();
-            __instance.m_csNewButton = charSelect.Find("Panel/Inset/NewButton").GetComponent<Button>();
-            __instance.m_csNewBigButton = charSelect.Find("Panel/Inset/NewButtonBig").GetComponent<Button>();
-            __instance.m_csLeftButton = charSelect.Find("Panel/DummyObjects/Dummy").GetComponent<Button>();
-            __instance.m_csRightButton = charSelect.Find("Panel/DummyObjects/Dummy").GetComponent<Button>();
-            __instance.m_csName = charSelect.Find("Panel/DummyObjects/Dummy").GetComponent<TMP_Text>();
-            SetButtonListener(charSelect, "Panel/Inset/RemoveButton", __instance.OnCharacterRemove);
-            SetButtonListener(charSelect, "Panel/Inset/NewButton", __instance.OnCharacterNew);
-            SetButtonListener(charSelect, "Panel/Inset/NewButtonBig", __instance.OnCharacterNew);
-            SetButtonListener(charSelect, "Panel/Back", __instance.OnSelelectCharacterBack);
-            SetButtonListener(charSelect, "Panel/Start", __instance.OnCharacterStart);
-            SetButtonListener(charSelect, "Panel/ManageSaves", () => __instance.OnManageSaves(1));
-            SetButtonListener(charSelect, "RemoveCharacterDialog/ButtonYes", __instance.OnButtonRemoveCharacterYes);
-            SetButtonListener(charSelect, "RemoveCharacterDialog/ButtonNo", __instance.OnButtonRemoveCharacterNo);
+            if (charSelect != null)
+            {
+                __instance.m_selectCharacterPanel = charSelect.gameObject;
+                // Auga SelectCharacter paths (from AugaUnity prefab structure)
+                __instance.m_removeCharacterDialog = FO(charSelect, "RemoveCharacterDialog");
+                __instance.m_removeCharacterName = FC<TMP_Text>(charSelect, "RemoveCharacterDialog/Text");
+                __instance.m_csRemoveButton = FC<Button>(charSelect, "Inset/RemoveButton");
+                __instance.m_csStartButton = FC<Button>(charSelect, "Start");
+                __instance.m_csNewButton = FC<Button>(charSelect, "Inset/NewButton");
+                __instance.m_csNewBigButton = FC<Button>(charSelect, "Inset/NewButtonBig");
+                __instance.m_csLeftButton = FC<Button>(charSelect, "DummyObjects/Dummy");
+                __instance.m_csRightButton = FC<Button>(charSelect, "DummyObjects/Dummy");
+                __instance.m_csName = FC<TMP_Text>(charSelect, "DummyObjects/Dummy");
+                __instance.m_csFileSource = FC<TMP_Text>(charSelect, "SourceInfo");
+                __instance.m_csSourceInfo = FC<TMP_Text>(charSelect, "SourceInfo");
+                SetButtonListener(charSelect, "Inset/RemoveButton", __instance.OnCharacterRemove);
+                SetButtonListener(charSelect, "Inset/NewButton", __instance.OnCharacterNew);
+                SetButtonListener(charSelect, "Inset/NewButtonBig", __instance.OnCharacterNew);
+                SetButtonListener(charSelect, "Back", __instance.OnSelelectCharacterBack);
+                SetButtonListener(charSelect, "Start", __instance.OnCharacterStart);
+                SetButtonListener(charSelect, "ManageSaves", () => __instance.OnManageSaves(1));
+                SetButtonListener(charSelect, "RemoveCharacterDialog/ButtonYes", __instance.OnButtonRemoveCharacterYes);
+                SetButtonListener(charSelect, "RemoveCharacterDialog/ButtonNo", __instance.OnButtonRemoveCharacterNo);
+            }
 
-            var oldPlayerCustomizaton = __instance.m_newCharacterPanel.GetComponent<PlayerCustomizaton>();
-            var originalNoHair = oldPlayerCustomizaton.m_noHair;
-            var originalNoBeard = oldPlayerCustomizaton.m_noBeard;
+            // ---- NewCharacterPanel ----
+            var oldPlayerCustomizaton = __instance.m_newCharacterPanel != null
+                ? __instance.m_newCharacterPanel.GetComponent<PlayerCustomizaton>()
+                : null;
+            var originalNoHair = oldPlayerCustomizaton != null ? oldPlayerCustomizaton.m_noHair : null;
+            var originalNoBeard = oldPlayerCustomizaton != null ? oldPlayerCustomizaton.m_noBeard : null;
 
             var newCharacter = __instance.Replace("CharacterSelection/NewCharacterPanel", Auga.Assets.MainMenuPrefab);
-            var newPlayerCustomization = newCharacter.GetComponent<PlayerCustomizaton>();
-            newPlayerCustomization.m_noHair = originalNoHair;
-            newPlayerCustomization.m_noBeard = originalNoBeard;
-            __instance.m_newCharacterPanel = newCharacter.gameObject;
-            __instance.m_csNewCharacterDone = newCharacter.Find("Panel/Done").GetComponent<Button>();
-            __instance.m_newCharacterError = newCharacter.Find("Panel/Content/NameExistsWarning").gameObject;
-            __instance.m_csNewCharacterName = newCharacter.Find("Panel/Content/CharacterName").GetComponent<GUIFramework.GuiInputField>();
-            SetButtonListener(newCharacter, "Panel/Done", () => __instance.OnNewCharacterDone(true));
-            SetButtonListener(newCharacter, "Panel/Cancel", __instance.OnNewCharacterCancel);
-
+            if (newCharacter != null)
             {
-                var toggle = newCharacter.Find("Panel/Content/ToggleGroup/Toggle_Female").GetComponent<Toggle>();
-                toggle.onValueChanged = new Toggle.ToggleEvent();
-                toggle.onValueChanged.AddListener((on) => { if (on) newPlayerCustomization.SetPlayerModel(1); });
-                toggle.onValueChanged.AddListener((on) => toggle.transform.GetChild(1).gameObject.SetActive(on));
-            }
-            {
-                var toggle = newCharacter.Find("Panel/Content/ToggleGroup/Toggle_Male").GetComponent<Toggle>();
-                toggle.onValueChanged = new Toggle.ToggleEvent();
-                toggle.onValueChanged.AddListener((on) => { if (on) newPlayerCustomization.SetPlayerModel(0); });
-                toggle.onValueChanged.AddListener((on) => toggle.transform.GetChild(1).gameObject.SetActive(on));
+                var newPlayerCustomization = newCharacter.GetComponent<PlayerCustomizaton>();
+                if (newPlayerCustomization != null)
+                {
+                    newPlayerCustomization.m_noHair = originalNoHair;
+                    newPlayerCustomization.m_noBeard = originalNoBeard;
+                }
+                __instance.m_newCharacterPanel = newCharacter.gameObject;
+                // Auga NewCharacterPanel paths (Content + ToggleGroup structure)
+                __instance.m_csNewCharacterDone = FC<Button>(newCharacter, "Content/Done")
+                    ?? FC<Button>(newCharacter, "Done");
+                __instance.m_newCharacterError = FO(newCharacter, "Content/NameExistsWarning");
+                __instance.m_csNewCharacterName = FC<GUIFramework.GuiInputField>(newCharacter, "Content/CharacterName")
+                    ?? FC<GUIFramework.GuiInputField>(newCharacter, "CharacterName");
+                SetButtonListener(newCharacter, "Content/Done", () => __instance.OnNewCharacterDone(true));
+                SetButtonListener(newCharacter, "Content/Cancel", __instance.OnNewCharacterCancel);
+
+                var toggleFemale = FC<Toggle>(newCharacter, "ToggleGroup/Toggle_Female");
+                if (toggleFemale != null)
+                {
+                    toggleFemale.onValueChanged = new Toggle.ToggleEvent();
+                    toggleFemale.onValueChanged.AddListener((on) => { if (on) newPlayerCustomization?.SetPlayerModel(1); });
+                    toggleFemale.onValueChanged.AddListener((on) => toggleFemale.transform.GetChild(1).gameObject.SetActive(on));
+                }
+                var toggleMale = FC<Toggle>(newCharacter, "ToggleGroup/Toggle_Male");
+                if (toggleMale != null)
+                {
+                    toggleMale.onValueChanged = new Toggle.ToggleEvent();
+                    toggleMale.onValueChanged.AddListener((on) => { if (on) newPlayerCustomization?.SetPlayerModel(0); });
+                    toggleMale.onValueChanged.AddListener((on) => toggleMale.transform.GetChild(1).gameObject.SetActive(on));
+                }
             }
 
+            // ---- StartGame ----
             var startGame = __instance.Replace("StartGame", Auga.Assets.MainMenuPrefab);
-            __instance.m_startGamePanel = startGame.gameObject;
-            __instance.m_createWorldPanel = startGame.Find("NewWorldDialog").gameObject;
-            __instance.m_serverListPanel = startGame.Find("Panel/JoinPanel").gameObject;
-            __instance.m_publicServerToggle = startGame.Find("Panel/WorldPanel/CheckboxRow/StartPublicGameToggle").GetComponent<Toggle>();
-            __instance.m_openServerToggle = startGame.Find("Panel/WorldPanel/CheckboxRow/StartServerToggle").GetComponent<Toggle>();
-            __instance.m_serverPassword = startGame.Find("Panel/WorldPanel/ServerPassword").GetComponent<GUIFramework.GuiInputField>();
-            __instance.m_passwordError = startGame.Find("Panel/WorldPanel/ServerPassword/Tooltip/ErrorText").GetComponent<TMP_Text>();
-            __instance.m_worldListRoot = startGame.Find("Panel/WorldPanel/ScrollRect/ItemList").GetComponent<RectTransform>();
-            __instance.m_worldListElement = Auga.Assets.WorldListElement;
-            __instance.m_worldListEnsureVisible = startGame.Find("Panel/WorldPanel/ScrollRect").GetComponent<ScrollRectEnsureVisible>();
-            __instance.m_worldListElementStep = 30;
-            __instance.m_newWorldName = startGame.Find("NewWorldDialog/WorldName").GetComponent<GUIFramework.GuiInputField>();
-            __instance.m_newWorldSeed = startGame.Find("NewWorldDialog/WorldSeed").GetComponent<GUIFramework.GuiInputField>();
-            __instance.m_newWorldDone = startGame.Find("NewWorldDialog/Done").GetComponent<Button>();
-            __instance.m_worldStart = startGame.Find("Panel/WorldPanel/Start").GetComponent<Button>();
-            __instance.m_worldRemove = startGame.Find("Panel/WorldPanel/RemoveButton").GetComponent<Button>();
-            __instance.m_removeWorldDialog = startGame.Find("RemoveWorldDialog").gameObject;
-            __instance.m_removeWorldName = startGame.Find("RemoveWorldDialog/Text").GetComponent<TMP_Text>();
-            __instance.m_worldListPanel = startGame.Find("Panel/WorldPanel").gameObject;
-
-            // Server browser (m_serverListRoot, m_filterInputField, m_joinIPPanel etc.) was
-            // completely redesigned in current Valheim — handled now by ServerOptionsGUI.
-            // TODO: wire up Auga server browser elements if needed.
-
-            SetButtonListener(startGame, "Panel/WorldPanel/RemoveButton", __instance.OnWorldRemove);
-            SetButtonListener(startGame, "Panel/WorldPanel/NewButton", __instance.OnWorldNew);
-            SetButtonListener(startGame, "Panel/WorldPanel/Back", __instance.OnStartGameBack);
-            SetButtonListener(startGame, "Panel/WorldPanel/Start", __instance.OnWorldStart);
-            SetButtonListener(startGame, "RemoveWorldDialog/ButtonYes", __instance.OnButtonRemoveWorldYes);
-            SetButtonListener(startGame, "RemoveWorldDialog/ButtonNo", __instance.OnButtonRemoveWorldNo);
-            SetButtonListener(startGame, "NewWorldDialog/Cancel", __instance.OnNewWorldBack);
-            SetButtonListener(startGame, "NewWorldDialog/Done", () => __instance.OnNewWorldDone(true));
-
-            var tabHandler = startGame.GetComponentInChildren<TabHandler>(true);
-            if (tabHandler != null && tabHandler.m_tabs.Count >= 2)
+            if (startGame != null)
             {
-                tabHandler.m_tabs[0].m_onClick = new Button.ButtonClickedEvent();
-                tabHandler.m_tabs[0].m_onClick.AddListener(__instance.OnSelectWorldTab);
-                tabHandler.m_tabs[1].m_onClick = new Button.ButtonClickedEvent();
-                tabHandler.m_tabs[1].m_onClick.AddListener(__instance.OnServerListTab);
+                __instance.m_startGamePanel = startGame.gameObject;
+                __instance.m_createWorldPanel = FO(startGame, "NewWorldDialog");
+                __instance.m_serverListPanel = FO(startGame, "Panel/JoinPanel");
+                __instance.m_publicServerToggle = FC<Toggle>(startGame, "Panel/WorldPanel/CheckboxRow/StartPublicGameToggle");
+                __instance.m_openServerToggle = FC<Toggle>(startGame, "Panel/WorldPanel/CheckboxRow/StartServerToggle");
+                __instance.m_serverPassword = FC<GUIFramework.GuiInputField>(startGame, "Panel/WorldPanel/ServerPassword");
+                __instance.m_passwordError = FC<TMP_Text>(startGame, "Panel/WorldPanel/ServerPassword/Tooltip/ErrorText");
+                __instance.m_worldListRoot = FC<RectTransform>(startGame, "Panel/WorldPanel/ScrollRect/ItemList");
+                __instance.m_worldListElement = Auga.Assets.WorldListElement;
+                __instance.m_worldListEnsureVisible = FC<ScrollRectEnsureVisible>(startGame, "Panel/WorldPanel/ScrollRect");
+                __instance.m_worldListElementStep = 30;
+                __instance.m_newWorldName = FC<GUIFramework.GuiInputField>(startGame, "NewWorldDialog/WorldName");
+                __instance.m_newWorldSeed = FC<GUIFramework.GuiInputField>(startGame, "NewWorldDialog/WorldSeed");
+                __instance.m_newWorldDone = FC<Button>(startGame, "NewWorldDialog/Done");
+                __instance.m_worldStart = FC<Button>(startGame, "Panel/WorldPanel/Start");
+                __instance.m_worldRemove = FC<Button>(startGame, "Panel/WorldPanel/RemoveButton");
+                __instance.m_removeWorldDialog = FO(startGame, "RemoveWorldDialog");
+                __instance.m_removeWorldName = FC<TMP_Text>(startGame, "RemoveWorldDialog/Text");
+                __instance.m_worldListPanel = FO(startGame, "Panel/WorldPanel");
+
+                SetButtonListener(startGame, "Panel/WorldPanel/RemoveButton", __instance.OnWorldRemove);
+                SetButtonListener(startGame, "Panel/WorldPanel/NewButton", __instance.OnWorldNew);
+                SetButtonListener(startGame, "Panel/WorldPanel/Back", __instance.OnStartGameBack);
+                SetButtonListener(startGame, "Panel/WorldPanel/Start", __instance.OnWorldStart);
+                SetButtonListener(startGame, "RemoveWorldDialog/ButtonYes", __instance.OnButtonRemoveWorldYes);
+                SetButtonListener(startGame, "RemoveWorldDialog/ButtonNo", __instance.OnButtonRemoveWorldNo);
+                SetButtonListener(startGame, "NewWorldDialog/Cancel", __instance.OnNewWorldBack);
+                SetButtonListener(startGame, "NewWorldDialog/Done", () => __instance.OnNewWorldDone(true));
+
+                var tabHandler = startGame.GetComponentInChildren<TabHandler>(true);
+                if (tabHandler != null && tabHandler.m_tabs.Count >= 2)
+                {
+                    tabHandler.m_tabs[0].m_onClick = new Button.ButtonClickedEvent();
+                    tabHandler.m_tabs[0].m_onClick.AddListener(__instance.OnSelectWorldTab);
+                    tabHandler.m_tabs[1].m_onClick = new Button.ButtonClickedEvent();
+                    tabHandler.m_tabs[1].m_onClick.AddListener(__instance.OnServerListTab);
+                }
             }
 
-            __instance.m_menuAnimator.runtimeAnimatorController = Auga.Assets.MainMenuPrefab.GetComponent<Animator>().runtimeAnimatorController;
-
-            // Cloud/file source display fields
-            __instance.m_csFileSource = charSelect.Find("Panel/DummyObjects/Dummy").GetComponent<TMP_Text>();
-            __instance.m_csSourceInfo = charSelect.Find("Panel/DummyObjects/Dummy").GetComponent<TMP_Text>();
+            __instance.m_menuAnimator.runtimeAnimatorController =
+                Auga.Assets.MainMenuPrefab.GetComponent<Animator>()?.runtimeAnimatorController;
 
             __instance.OnSelectWorldTab();
 
-            Object.Instantiate(Auga.Assets.MainMenuPrefab.GetComponentInChildren<AugaCharacterSelectPhotoBooth>(true), __instance.transform);
+            Object.Instantiate(
+                Auga.Assets.MainMenuPrefab.GetComponentInChildren<AugaCharacterSelectPhotoBooth>(true),
+                __instance.transform);
 
             Localization.instance.Localize(__instance.transform);
         }
