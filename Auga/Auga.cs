@@ -427,6 +427,7 @@ namespace Auga
         private void LoadDependencies()
         {
             var assembly = Assembly.GetCallingAssembly();
+            LoadEmbeddedAssembly(assembly, "APIManager.dll");
             LoadEmbeddedAssembly(assembly, "fastJSON.dll");
             LoadEmbeddedAssembly(assembly, "Unity.Auga.dll");
         }
