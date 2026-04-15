@@ -136,6 +136,27 @@ namespace Auga
 
         public static Auga instance => _instance;
 
+        // Статический конструктор — регистрируем AssemblyResolve до того как CLR
+        // попытается разрешить APIManager/fastJSON/Unity.Auga при загрузке типа.
+        static Auga()
+        {
+            AppDomain.CurrentDomain.AssemblyResolve += ResolveEmbeddedAssembly;
+        }
+
+        private static Assembly ResolveEmbeddedAssembly(object sender, ResolveEventArgs args)
+        {
+            var shortName = new AssemblyName(args.Name).Name + ".dll";
+            var resourceName = $"Auga.{shortName}";
+            var stream = Assembly.GetExecutingAssembly().GetManifestResourceStream(resourceName);
+            if (stream == null) return null;
+            using (stream)
+            {
+                var data = new byte[stream.Length];
+                stream.Read(data, 0, data.Length);
+                return Assembly.Load(data);
+            }
+        }
+
         public void Awake()
         {
             _instance = this;
