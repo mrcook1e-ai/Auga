@@ -125,6 +125,7 @@ namespace Auga
         public static bool HasSimpleRecycling;
         public static bool HasChatter;
         public static bool HasSearsCatalog;
+        public static bool HasJewelcrafting;
 
         private static Auga _instance;
         private Harmony _harmony;
@@ -147,20 +148,8 @@ namespace Auga
                     Debug.LogWarning($"Project Auga - Version {Assembly.GetExecutingAssembly().GetName().Version}");
                     Debug.LogWarning($"Valheim - Version {(global::Version.GetVersionString())}");
 
-                    if ((global::Version.CurrentVersion.m_minor == 217 && global::Version.CurrentVersion.m_patch >= 27 ) || global::Version.CurrentVersion.m_minor > 217)
-                    {
-                        Debug.LogWarning($"GAME VERSION CHECK - PASSED");
-                        Debug.LogWarning($"==============================================================================");
-                    }
-                    else
-                    {
-                        Debug.LogError($">>>>>>>>> GAME VERSION MISMATCH - EXITING <<<<<<<<");
-                        Debug.LogWarning($"==============================================================================");
-                        Thread.Sleep(10000);
-                        
-                        Destroy(this);
-                        return;
-                    }
+                    // Version gate removed — PTB check is no longer needed for current Valheim.
+                    Debug.LogWarning($"==============================================================================");
                 }
             }
 
@@ -175,8 +164,9 @@ namespace Auga
             HasBetterTrader = Chainloader.PluginInfos.ContainsKey("Menthus.bepinex.plugins.BetterTrader");
             HasMultiCraft  = Chainloader.PluginInfos.TryGetValue("maximods.valheim.multicraft", out var multiCraftPlugin);
             HasSimpleRecycling  = Chainloader.PluginInfos.TryGetValue("com.github.abearcodes.valheim.simplerecycling", out var recyclingPlugin);
-            HasChatter = Chainloader.PluginInfos.ContainsKey("redseiko.valheim.chatter");
-            HasSearsCatalog = Chainloader.PluginInfos.ContainsKey("redseiko.valheim.searscatalog");
+            HasChatter = Chainloader.PluginInfos.TryGetValue("redseiko.valheim.chatter", out var chatterPlugin);
+            HasSearsCatalog = Chainloader.PluginInfos.TryGetValue("redseiko.valheim.searscatalog", out var searsPlugin);
+            HasJewelcrafting = Chainloader.PluginInfos.TryGetValue("org.bepinex.plugins.jewelcrafting", out var jewelcraftingPlugin);
 
             _harmony = Harmony.CreateAndPatchAll(Assembly.GetExecutingAssembly(), PluginID);
 
