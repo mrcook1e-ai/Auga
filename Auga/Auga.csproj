@@ -41,7 +41,8 @@
   <!-- NuGet пакеты -->
   <ItemGroup>
     <PackageReference Include="BepInEx.AssemblyPublicizer.MSBuild" Version="0.4.2" />
-    <PackageReference Include="ILRepack.Lib.MSBuild.Task" Version="2.0.18.2" />
+    <!-- ILRepack.Lib.MSBuild.Task несовместим с .NET 10 SDK и избыточен:
+         APIManager.dll уже встроен как EmbeddedResource и грузится через AppDomain.AssemblyResolve -->
   </ItemGroup>
 
   <!-- Ссылки на BepInEx -->
@@ -179,7 +180,7 @@
     <EmbeddedResource Include="..\AugaUnity\AssetBundles\augaassets">
       <Link>augaassets</Link>
     </EmbeddedResource>
-    <EmbeddedResource Include="..\AugaUnityLib\bin\Debug\net472\Unity.Auga.dll">
+    <EmbeddedResource Include="..\AugaUnityLib\bin\$(Configuration)\net472\Unity.Auga.dll">
       <Link>Unity.Auga.dll</Link>
     </EmbeddedResource>
     <EmbeddedResource Include="..\Libs\fastJSON.dll">
@@ -202,7 +203,7 @@
   -->
 
   <!-- Копирование мода в папку плагинов Valheim -->
-  <Target Name="CopyToValheim" AfterTargets="ILRepacker" Condition="'$(Configuration)' != 'API'">
+  <Target Name="CopyToValheim" AfterTargets="Build" Condition="'$(Configuration)' != 'API'">
     <Exec Command="xcopy &quot;$(TargetDir)$(TargetFileName)&quot; &quot;$(ValheimPluginsDir)\$(ProjectName)\&quot; /q /y /i"
           Condition="'$(ValheimPluginsDir)' != ''" />
     <Exec Command="xcopy &quot;$(ProjectDir)translations.json&quot; &quot;$(ValheimPluginsDir)\$(ProjectName)\&quot; /q /y /i"

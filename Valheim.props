@@ -9,6 +9,19 @@
 -->
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
 
+  <!--
+    Статический поиск ValheimDir по известным путям.
+    Вычисляется ДО запуска любых Target-ов — поэтому HintPath работает корректно.
+    Порядок: явная передача /p:ValheimDir=... > реестровый путь > известные fallback-пути.
+  -->
+  <PropertyGroup Condition="'$(ValheimDir)' == ''">
+    <ValheimDir Condition="Exists('F:\SteamLibrary\steamapps\common\Valheim')">F:\SteamLibrary\steamapps\common\Valheim</ValheimDir>
+    <ValheimDir Condition="'$(ValheimDir)' == '' AND Exists('C:\Program Files (x86)\Steam\steamapps\common\Valheim')">C:\Program Files (x86)\Steam\steamapps\common\Valheim</ValheimDir>
+    <ValheimDir Condition="'$(ValheimDir)' == '' AND Exists('D:\SteamLibrary\steamapps\common\Valheim')">D:\SteamLibrary\steamapps\common\Valheim</ValheimDir>
+    <ValheimDir Condition="'$(ValheimDir)' == '' AND Exists('E:\SteamLibrary\steamapps\common\Valheim')">E:\SteamLibrary\steamapps\common\Valheim</ValheimDir>
+    <ValheimDir Condition="'$(ValheimDir)' == '' AND Exists('G:\SteamLibrary\steamapps\common\Valheim')">G:\SteamLibrary\steamapps\common\Valheim</ValheimDir>
+  </PropertyGroup>
+
   <!-- Пути производные от ValheimDir — пересчитываются после автопоиска -->
   <PropertyGroup>
     <!-- BepInEx: BepInEx.dll, 0Harmony.dll -->

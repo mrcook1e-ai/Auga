@@ -32,6 +32,16 @@ namespace AugaUnity
 
         public void Start()
         {
+            // SetupCharacterPreview создаёт Heightmap-объекты которые требуют WorldGenerator.
+            // В главном меню WorldGenerator не инициализирован → Heightmap.Generate крашится
+            // и сломанные объекты остаются в Heightmap.m_heightmaps → ClutterSystem спам.
+            // Пропускаем фотосессию если WorldGenerator недоступен.
+            if (WorldGenerator.instance == null)
+            {
+                Debug.LogWarning("[Auga] PhotoBooth: WorldGenerator not available, skipping character photos.");
+                TakingPhotos = false;
+                return;
+            }
             StartCoroutine(PhotoBoothCoroutine());
         }
 

@@ -13,11 +13,12 @@ namespace AugaUnity
 
         private void Update()
         {
+            if (m_field == null) return;
             m_field.ActivateInputField();
             if (!(m_field.text != "") || !Input.GetKeyDown(KeyCode.Return) && !Input.GetKeyDown(KeyCode.KeypadEnter) && !ZInput.GetButtonDown("JoyButtonA"))
                 return;
-            
-            m_onSubmit(m_field.text);
+
+            m_onSubmit?.Invoke(m_field.text);
             m_field.text = "";
         }
     }
