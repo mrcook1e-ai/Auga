@@ -440,17 +440,44 @@ namespace Auga
             FixDeadFields(__instance);
 
             // ---- PhotoBooth ----
-            // Запускаем ПОСЛЕ того как FejdStartup.instance и m_mainCamera инициализированы
-            // ванильным Awake() — иначе GetCamera() бросает NPE.
+            // CharacterSelectPhotoBooth-объект в префабе хранится с m_IsActive: 0 (выключен),
+            // поэтому после Replace() он не запускает Start() → фото не делаются.
+            // Инстанцируем его отдельно прямо под FejdStartup и принудительно активируем.
+            // WorldGenerator.Initialize() уже вызван ванильным Awake() до нашего Postfix,
+            // поэтому WorldGenerator.instance != null и PhotoBoothCoroutine запустится.
             try
             {
-                UnityEngine.Object.Instantiate(
-                    Auga.Assets.MainMenuPrefab.GetComponentInChildren<AugaCharacterSelectPhotoBooth>(true),
-                    __instance.transform);
+                var photoBoothPrefab = Auga.Assets.MainMenuPrefab
+                    .GetComponentInChildren<AugaCharacterSelectPhotoBooth>(true);
+                if (photoBoothPrefab != null)
+                {
+                    var photoBoothInst = UnityEngine.Object.Instantiate(photoBoothPrefab, __instance.transform);
+                    photoBoothInst.gameObject.SetActive(true); // активируем → Start() → TakePhotos
+                    Debug.Log("[Auga] PhotoBooth instantiated and activated");
+                }
+                else
+                {
+                    Debug.LogWarning("[Auga] PhotoBooth prefab component not found in MainMenuPrefab");
+                }
             }
             catch (Exception e)
             {
-                Auga.LogWarning($"PhotoBooth instantiate failed: {e.Message}");
+                Debug.LogWarning($"[Auga] PhotoBooth instantiate failed: {e.Message}");
+            }
+
+            // ---- WorldListElement: добавляем отсутствующий дочерний объект "modifiers" ----
+            // Vanilla UpdateWorldList() вызывает Find("modifiers").GetComponent<TMP_Text>().text = ...
+            // без null-check. В Auga-префабе WorldListElement дочерний "modifiers" отсутствует,
+            // что вызывает NPE в самом начале цикла → список миров не заполняется вообще.
+            // Добавляем скрытый заглушечный TMP_Text-объект с нужным именем.
+            if (__instance.m_worldListElement != null
+                && __instance.m_worldListElement.transform.Find("modifiers") == null)
+            {
+                var modifiersGO = new GameObject("modifiers");
+                modifiersGO.transform.SetParent(__instance.m_worldListElement.transform, false);
+                modifiersGO.AddComponent<TMPro.TextMeshProUGUI>();
+                // GameObject активен — TMP_Text доступен для записи; размер 0 → не виден.
+                Debug.Log("[Auga] WorldListElement: added missing 'modifiers' child");
             }
 
             // OnSelectWorldTab вызывается здесь, когда все поля уже инициализированы.
@@ -460,7 +487,7 @@ namespace Auga
             }
             catch (Exception e)
             {
-                Auga.LogWarning($"OnSelectWorldTab failed: {e.Message}");
+                Debug.LogWarning($"[Auga] OnSelectWorldTab failed: {e.Message}");
             }
         }
 

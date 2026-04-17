@@ -62,6 +62,7 @@
   <ItemGroup>
     <Compile Include="Assets\Editor\UIGradient\UIGradientEditor.cs" />
     <Compile Include="Assets\Editor\AugaLauncher.cs" />
+    <Compile Include="Assets\Editor\FixMissingScripts.cs" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="UnityEngine">

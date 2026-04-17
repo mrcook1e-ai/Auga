@@ -6,7 +6,10 @@
       "Bash(git stash:*)",
       "Bash(git checkout:*)",
       "Bash(git commit -m ':*)",
-      "Bash(git push:*)"
+      "Bash(git push:*)",
+      "Bash(git lfs:*)",
+      "Bash(grep -v \"//\")",
+      "mcp__unityMCP__execute_code"
     ]
   }
 }
