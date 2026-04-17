@@ -1,4 +1,4 @@
-%YAML 1.1
+﻿%YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
 --- !u!1 &3089227022875370
 GameObject:
@@ -10249,7 +10249,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3149205065940879510, guid: ae0d5c8245b17784e9c15381084fd582,
         type: 3}
-      propertyPath: m_Text
+      propertyPath: m_text
       value: '##'
       objectReference: {fileID: 0}
     - target: {fileID: 3149205065940879510, guid: ae0d5c8245b17784e9c15381084fd582,
@@ -10276,12 +10276,12 @@ PrefabInstance:
         type: 2}
     - target: {fileID: 4205482982407335676, guid: ae0d5c8245b17784e9c15381084fd582,
         type: 3}
-      propertyPath: m_ActiveFontFeatures.Array.data[0]
+      propertyPath: 'm_ActiveFontFeatures.Array.data[0]'
       value: 1801810542
       objectReference: {fileID: 0}
     - target: {fileID: 4683603875916354397, guid: ae0d5c8245b17784e9c15381084fd582,
         type: 3}
-      propertyPath: m_Text
+      propertyPath: m_text
       value: 999
       objectReference: {fileID: 0}
     - target: {fileID: 4683603875916354397, guid: ae0d5c8245b17784e9c15381084fd582,
@@ -10332,7 +10332,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: -560918846, guid: b5cd06fc9be3c4b458ca2eada68967c7, type: 3}
+  m_Script: {fileID: 1526933710, guid: a1b2c3d4e5f6789012345678abcdef01, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
 --- !u!1001 &1312471828476778378
@@ -10785,7 +10785,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6775697012886278583, guid: d95cad14a6363494ea860ea94bf71b77,
         type: 3}
-      propertyPath: m_Text
+      propertyPath: m_text
       value: LABEL
       objectReference: {fileID: 0}
     m_RemovedComponents: []
@@ -10869,7 +10869,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 2441729153214197542, guid: 316992ca36ba84e4ebc90c4d6799770b,
         type: 3}
-      propertyPath: m_Text
+      propertyPath: m_text
       value: $menu_close
       objectReference: {fileID: 0}
     - target: {fileID: 3459452542212161587, guid: 316992ca36ba84e4ebc90c4d6799770b,
@@ -12170,7 +12170,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 2441729153214197542, guid: 316992ca36ba84e4ebc90c4d6799770b,
         type: 3}
-      propertyPath: m_Text
+      propertyPath: m_text
       value: $inventory_style
       objectReference: {fileID: 0}
     - target: {fileID: 3459452542212161587, guid: 316992ca36ba84e4ebc90c4d6799770b,
@@ -13796,7 +13796,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 2441729153214197542, guid: 316992ca36ba84e4ebc90c4d6799770b,
         type: 3}
-      propertyPath: m_Text
+      propertyPath: m_text
       value: $inventory_style
       objectReference: {fileID: 0}
     - target: {fileID: 3459452542212161587, guid: 316992ca36ba84e4ebc90c4d6799770b,
@@ -14106,7 +14106,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 2441729153214197542, guid: 671c865692232404d87b59cb43b6d917,
         type: 3}
-      propertyPath: m_Text
+      propertyPath: m_text
       value: $inventory_craftingprog
       objectReference: {fileID: 0}
     - target: {fileID: 3459452542212161587, guid: 671c865692232404d87b59cb43b6d917,

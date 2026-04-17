@@ -140,7 +140,7 @@ public class AugaLauncher : EditorWindow
     public static void BuildAssetBundles()
     {
         var stagePath = GetStagePath();
-        BuildPipeline.BuildAssetBundles(stagePath, BuildAssetBundleOptions.None, BuildTarget.StandaloneWindows);
+        BuildPipeline.BuildAssetBundles(stagePath, BuildAssetBundleOptions.None, BuildTarget.StandaloneWindows64);
         Debug.Log("Finished building Auga asset bundles");
     }
 

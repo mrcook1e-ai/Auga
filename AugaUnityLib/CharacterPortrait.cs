@@ -59,14 +59,16 @@ namespace AugaUnity
             var camera = Instantiate(FejdStartup.instance.m_mainCamera.GetComponent<Camera>());
             camera.fieldOfView = FOV;
             camera.targetTexture = renderTexture;
-            camera.GetComponent<DepthOfField>().enabled = false;
             camera.enabled = false;
+
+            var depthOfField = camera.GetComponent<DepthOfField>();
+            if (depthOfField != null) depthOfField.enabled = false;
 
             camera.transform.position = FejdStartup.instance.m_cameraMarkerCharacter.position;
             camera.transform.rotation = FejdStartup.instance.m_cameraMarkerCharacter.rotation;
 
             var postProcessing = camera.GetComponent<PostProcessingBehaviour>();
-            postProcessing.profile = profile;
+            if (postProcessing != null) postProcessing.profile = profile;
 
             return camera;
         }

@@ -1,0 +1,24 @@
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.5.2.0
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Auga", "Auga.csproj", "{F93B3025-0028-EF97-5F27-CF4759A7B738}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{F93B3025-0028-EF97-5F27-CF4759A7B738}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F93B3025-0028-EF97-5F27-CF4759A7B738}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F93B3025-0028-EF97-5F27-CF4759A7B738}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F93B3025-0028-EF97-5F27-CF4759A7B738}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {425AB475-985A-448B-8117-32730E1E480A}
+	EndGlobalSection
+EndGlobal

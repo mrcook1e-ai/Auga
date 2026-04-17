@@ -978,7 +978,7 @@ MonoBehaviour:
   m_splitNumInputTimeoutSec: 0.5
 --- !u!95 &4801675562756710816
 Animator:
-  serializedVersion: 5
+  serializedVersion: 7
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
@@ -992,6 +992,7 @@ Animator:
   m_ApplyRootMotion: 0
   m_LinearVelocityBlending: 0
   m_StabilizeFeet: 0
+  m_AnimatePhysics: 0
   m_WarningMessage: 
   m_HasTransformHierarchy: 1
   m_AllowConstantClipSamplingOptimization: 1
@@ -2449,12 +2450,12 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3501538415260722804, guid: 19e41a9b073ed41478f0b47da749a20d,
         type: 3}
-      propertyPath: TabTitles.Array.data[0]
+      propertyPath: 'TabTitles.Array.data[0]'
       value: 
       objectReference: {fileID: 2492781162903541493}
     - target: {fileID: 3501538415260722804, guid: 19e41a9b073ed41478f0b47da749a20d,
         type: 3}
-      propertyPath: TabTitles.Array.data[1]
+      propertyPath: 'TabTitles.Array.data[1]'
       value: 
       objectReference: {fileID: 8898270482053098006}
     - target: {fileID: 3511999587188331283, guid: 19e41a9b073ed41478f0b47da749a20d,
@@ -2599,27 +2600,27 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3969648783958866623, guid: 19e41a9b073ed41478f0b47da749a20d,
         type: 3}
-      propertyPath: TabTitles.Array.data[0]
+      propertyPath: 'TabTitles.Array.data[0]'
       value: 
       objectReference: {fileID: 7669025455704820986}
     - target: {fileID: 3969648783958866623, guid: 19e41a9b073ed41478f0b47da749a20d,
         type: 3}
-      propertyPath: TabTitles.Array.data[1]
+      propertyPath: 'TabTitles.Array.data[1]'
       value: 
       objectReference: {fileID: 5196432026783894456}
     - target: {fileID: 3969648783958866623, guid: 19e41a9b073ed41478f0b47da749a20d,
         type: 3}
-      propertyPath: TabTitles.Array.data[2]
+      propertyPath: 'TabTitles.Array.data[2]'
       value: 
       objectReference: {fileID: 957253615337074611}
     - target: {fileID: 3969648783958866623, guid: 19e41a9b073ed41478f0b47da749a20d,
         type: 3}
-      propertyPath: TabTitles.Array.data[3]
+      propertyPath: 'TabTitles.Array.data[3]'
       value: 
       objectReference: {fileID: 6669579808478858320}
     - target: {fileID: 3969648783958866623, guid: 19e41a9b073ed41478f0b47da749a20d,
         type: 3}
-      propertyPath: TabTitles.Array.data[4]
+      propertyPath: 'TabTitles.Array.data[4]'
       value: 
       objectReference: {fileID: 3917037792719602825}
     - target: {fileID: 4026677092144333671, guid: 19e41a9b073ed41478f0b47da749a20d,
@@ -2814,7 +2815,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5246010332775873919, guid: 19e41a9b073ed41478f0b47da749a20d,
         type: 3}
-      propertyPath: m_Text
+      propertyPath: m_text
       value: 
       objectReference: {fileID: 0}
     - target: {fileID: 5255483897910884884, guid: 19e41a9b073ed41478f0b47da749a20d,
@@ -3520,7 +3521,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7889163138941262698, guid: 19e41a9b073ed41478f0b47da749a20d,
         type: 3}
-      propertyPath: m_ActiveFontFeatures.Array.data[0]
+      propertyPath: 'm_ActiveFontFeatures.Array.data[0]'
       value: 1801810542
       objectReference: {fileID: 0}
     - target: {fileID: 7969854885582796295, guid: 19e41a9b073ed41478f0b47da749a20d,
@@ -4402,6 +4403,11 @@ PrefabInstance:
       propertyPath: m_AnchorMin.x
       value: 0.63
       objectReference: {fileID: 0}
+    - target: {fileID: 4945370634214930881, guid: b46ebb8262e7b8e4bbd1cc0baf3c4213,
+        type: 3}
+      propertyPath: m_fontSize
+      value: 11.45
+      objectReference: {fileID: 0}
     - target: {fileID: 5188599557460405203, guid: b46ebb8262e7b8e4bbd1cc0baf3c4213,
         type: 3}
       propertyPath: m_Pivot.x
@@ -4671,7 +4677,7 @@ PrefabInstance:
     - target: {fileID: 6965747634257585737, guid: 8b0cac25df6f814448afbd01b99e89a4,
         type: 3}
       propertyPath: m_IsActive
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -4967,7 +4973,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 2441729153214197542, guid: 316992ca36ba84e4ebc90c4d6799770b,
         type: 3}
-      propertyPath: m_Text
+      propertyPath: m_text
       value: $inventory_takeall
       objectReference: {fileID: 0}
     - target: {fileID: 3459452542212161587, guid: 316992ca36ba84e4ebc90c4d6799770b,
