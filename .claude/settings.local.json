@@ -1,9 +1,12 @@
 {
   "permissions": {
     "allow": [
-      "Bash(du -sh /c/Users/mrcook1e/Desktop/Auga/.claude/worktrees/flamboyant-kepler/Auga/*.zip)",
-      "Bash(ls /c/Users/mrcook1e/Desktop/Auga/.claude/worktrees/flamboyant-kepler/Auga/*.json)",
-      "Bash(xargs ls:*)"
+      "Bash(git merge:*)",
+      "Bash(git add:*)",
+      "Bash(git stash:*)",
+      "Bash(git checkout:*)",
+      "Bash(git commit -m ':*)",
+      "Bash(git push:*)"
     ]
   }
 }
