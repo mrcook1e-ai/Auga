@@ -287,7 +287,8 @@ namespace Auga
 
                 __instance.m_newCharacterPanel  = newCharacter.gameObject;
                 // Done/Cancel находятся под Panel/, а не Content/
-                __instance.m_csNewCharacterDone = FC<Button>(newCharacter, "Panel/Done");
+                __instance.m_csNewCharacterDone   = FC<Button>(newCharacter, "Panel/Done");
+                __instance.m_csNewCharacterCancel = FC<Button>(newCharacter, "Panel/Cancel");
                 __instance.m_newCharacterError  = FO(newCharacter, "Panel/Content/NameExistsWarning");
                 __instance.m_csNewCharacterName = FC<GUIFramework.GuiInputField>(newCharacter, "Panel/Content/CharacterName");
 
@@ -358,6 +359,41 @@ namespace Auga
                     tabHandler.m_tabs[0].m_onClick.AddListener(__instance.OnSelectWorldTab);
                     tabHandler.m_tabs[1].m_onClick = new Button.ButtonClickedEvent();
                     tabHandler.m_tabs[1].m_onClick.AddListener(__instance.OnServerListTab);
+                }
+
+                // m_tooltipAnchor / m_tooltipSecondaryAnchor — новые поля Valheim 0.221,
+                // которых нет в Auga-префабе. FixDeadFields не может создать stub для
+                // RectTransform (нельзя добавить второй Transform на GO).
+                // Если они остаются null, UpdateWorldList падает с NPE в UITooltip.Set.
+                // Назначаем WorldPanel как fallback-anchor — тултип появится рядом со списком.
+                var worldPanelT = startGame.Find("Panel/WorldPanel");
+                if (worldPanelT != null)
+                {
+                    var worldPanelRT = worldPanelT.GetComponent<RectTransform>();
+                    if (worldPanelRT != null)
+                    {
+                        __instance.m_tooltipAnchor = worldPanelRT;
+                        __instance.m_tooltipSecondaryAnchor = worldPanelRT;
+                    }
+                }
+
+                // m_worldSourceInfo / m_worldSourceInfoPanel — новые поля для уведомлений
+                // об облачных сохранениях и legacy-мирах. В Auga-префабе StartGame их нет.
+                // Создаём невидимые стабы вручную, чтобы FixDeadFields не пропустил их
+                // и UpdateWorldList не падал на SetActive()/text= без null-check.
+                if (__instance.m_worldSourceInfo == null || !__instance.m_worldSourceInfo)
+                {
+                    var wsInfoGO = new GameObject("_AugaStub_worldSourceInfo");
+                    wsInfoGO.SetActive(false);
+                    wsInfoGO.transform.SetParent(__instance.transform, false);
+                    __instance.m_worldSourceInfo = wsInfoGO.AddComponent<TMPro.TextMeshProUGUI>();
+                }
+                if (__instance.m_worldSourceInfoPanel == null || !__instance.m_worldSourceInfoPanel)
+                {
+                    var wsInfoPanelGO = new GameObject("_AugaStub_worldSourceInfoPanel");
+                    wsInfoPanelGO.SetActive(false);
+                    wsInfoPanelGO.transform.SetParent(__instance.transform, false);
+                    __instance.m_worldSourceInfoPanel = wsInfoPanelGO;
                 }
             }
 
@@ -557,6 +593,59 @@ namespace Auga
     [HarmonyPatch(typeof(FejdStartup), "SetupGui")]
     public static class FejdStartup_SetupGui_Patch
     {
+        // Postfix: m_versionLabel — поле TMP_Text, но Auga-префаб использует legacy Text
+        // в узле Menu/Version. Vanilla записывает текст в stub TextMeshProUGUI (invisible),
+        // поэтому дублируем его в реальный legacy Text компонент.
+        public static void Postfix(FejdStartup __instance)
+        {
+            try
+            {
+                var versionT = __instance.transform.Find("Menu/Version");
+                if (versionT != null)
+                {
+                    var legacyText = versionT.GetComponent<Text>();
+                    if (legacyText != null && __instance.m_versionLabel != null)
+                        legacyText.text = __instance.m_versionLabel.text;
+                }
+            }
+            catch (Exception ex)
+            {
+                Auga.LogWarning($"[SetupGui] version label copy failed: {ex.Message}");
+            }
+        }
+
+        public static Exception Finalizer(Exception __exception)
+            => __exception is NullReferenceException ? null : __exception;
+    }
+
+    // ShowConnectError: m_connectionFailedError — TMP_Text поле, но Auga ConnectionFailed
+    // использует legacy Text в узле "Text". Vanilla пишет в stub, мы копируем в реальный UI.
+    [HarmonyPatch(typeof(FejdStartup), "ShowConnectError")]
+    public static class FejdStartup_ShowConnectError_Patch
+    {
+        public static void Postfix(FejdStartup __instance)
+        {
+            try
+            {
+                // Текст уже записан ванильным кодом в m_connectionFailedError (stub TMP_Text)
+                var stubText = __instance.m_connectionFailedError?.text;
+                if (string.IsNullOrEmpty(stubText)) return;
+
+                var panel = __instance.m_connectionFailedPanel;
+                if (!panel) return;
+
+                // Auga ConnectionFailed имеет legacy Text как первый дочерний "Text"
+                var legacyText = panel.transform.Find("Text")?.GetComponent<Text>()
+                              ?? panel.GetComponentInChildren<Text>(true);
+                if (legacyText != null)
+                    legacyText.text = stubText;
+            }
+            catch (Exception ex)
+            {
+                Auga.LogWarning($"[ShowConnectError] error text copy failed: {ex.Message}");
+            }
+        }
+
         public static Exception Finalizer(Exception __exception)
             => __exception is NullReferenceException ? null : __exception;
     }
