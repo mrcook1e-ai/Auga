@@ -163,39 +163,89 @@ namespace Auga
             => __exception is NullReferenceException ? null : __exception;
     }
 
-    // AugaBindingDisplay.SetBinding: проверяет ZInput.instance.m_buttons.ContainsKey().
-    // Если ключ не найден — возвращает без обновления текста, текст остаётся "WW".
-    // Возможные причины: новые имена кнопок или ZInput не инициализирован.
-    // Патч: при ошибке подставляем "?" вместо аварийного выхода.
+    // AugaBindingDisplay.SetBinding: оригинальный метод обращается к
+    // ZInput.instance.m_buttons (private в Valheim 0.221) → FieldAccessException → SetText
+    // никогда не вызывается → текст остаётся "W" (дефолт из префаба).
+    //
+    // Решение: полностью заменяем SetBinding через Prefix (return false всегда).
+    // Вся логика повторена с рефлексией для m_buttons + прямым вызовом GetBoundKeyString
+    // (публичный метод — обращается к m_buttons изнутри, через свой доступ).
     [HarmonyPatch(typeof(AugaBindingDisplay), nameof(AugaBindingDisplay.SetBinding))]
     public static class AugaBindingDisplay_SetBinding_Patch
     {
+        private static readonly FieldInfo s_buttonsField =
+            typeof(ZInput).GetField("m_buttons", BindingFlags.Instance | BindingFlags.NonPublic);
+
         public static bool Prefix(AugaBindingDisplay __instance, string keyName)
         {
             try
             {
-                if (ZInput.instance == null) return false;
+                if (ZInput.instance == null) { __instance.SetText("?"); return false; }
 
                 // m_buttons приватный — читаем через рефлексию
-                var buttonsField = typeof(ZInput).GetField("m_buttons",
-                    BindingFlags.Instance | BindingFlags.NonPublic);
-                var buttons = buttonsField?.GetValue(ZInput.instance)
+                var buttons = s_buttonsField?.GetValue(ZInput.instance)
                     as Dictionary<string, ZInput.ButtonDef>;
 
                 if (buttons == null || !buttons.ContainsKey(keyName))
                 {
-                    // Ключ не найден — выводим заглушку, не аварийный выход
                     __instance.SetText("?");
-                    return false; // пропускаем оригинальный SetBinding
+                    return false;
                 }
 
-                return true; // ключ есть → пускаем ванильный SetBinding
+                // GetBoundKeyString — публичный метод, обращается к m_buttons через
+                // собственный доступ класса (не вызывает FieldAccessException).
+                var key = Localization.instance.GetBoundKeyString(keyName);
+
+                // Обнаружение кнопок мыши
+                var showMouse = -1;
+                if      (key == "Mouse0" || key == "LMB") showMouse = 0;
+                else if (key == "Mouse1" || key == "RMB") showMouse = 1;
+                else if (key == "Mouse2" || key == "MMB") showMouse = 2;
+                else if (key == "Mouse3") showMouse = 3;
+                else if (key == "Mouse4") showMouse = 4;
+                else if (key == "Mouse5") showMouse = 5;
+                else if (key == "Mouse6") showMouse = 6;
+
+                // Нормализация строк (из оригинального SetBinding)
+                switch (key)
+                {
+                    case "Equals":    key = "="; break;
+                    case "BackQuote": key = "`"; break;
+                }
+
+                if (key.StartsWith("Keypad"))
+                {
+                    key = key.Replace("Keypad", "Num")
+                             .Replace("Divide", "/")
+                             .Replace("Minus", "-")
+                             .Replace("Multiply", "*")
+                             .Replace("Equals", "=")
+                             .Replace("Period", ".")
+                             .Replace("Plus", "+");
+                }
+                else if (key.StartsWith("Alpha"))
+                {
+                    key = key.Replace("Alpha", "");
+                }
+                else
+                {
+                    switch (key)
+                    {
+                        case "LeftArrow":  key = "←"; break;
+                        case "RightArrow": key = "→"; break;
+                        case "UpArrow":    key = "↑"; break;
+                        case "DownArrow":  key = "↓"; break;
+                    }
+                }
+
+                __instance.SetText(key, showMouse);
             }
-            catch
+            catch (Exception ex)
             {
-                __instance.SetText("?");
-                return false;
+                Auga.LogWarning($"[AugaBindingDisplay] SetBinding '{keyName}' failed: {ex.Message}");
+                try { __instance.SetText("?"); } catch { }
             }
+            return false; // всегда пропускаем оригинальный SetBinding
         }
     }
 

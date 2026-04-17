@@ -203,46 +203,118 @@ namespace Auga
             }
 
             // ---- NewCharacterPanel ----
+            // Реальная структура Auga-префаба (из get_hierarchy):
+            //   NewCharacterPanel [PlayerCustomizaton]
+            //   └── Panel
+            //       ├── Content [TabHandler]
+            //       │   ├── CharacterName [GuiInputField]
+            //       │   ├── NameExistsWarning
+            //       │   ├── ToggleGroup
+            //       │   │   ├── Toggle_Female [Toggle]
+            //       │   │   └── Toggle_Male   [Toggle]
+            //       │   ├── SkinTone          ← (не SkinColor!)
+            //       │   │   ├── Label [Text]
+            //       │   │   └── Slider [Slider]
+            //       │   ├── Hair Tone         ← (с пробелом! не HairColor)
+            //       │   │   ├── Label [Text]
+            //       │   │   └── Slider [Slider]
+            //       │   ├── Blondness         ← (не HairTone!)
+            //       │   │   ├── Label [Text]
+            //       │   │   └── Slider [Slider]
+            //       │   ├── TabButtons/Tabs
+            //       │   │   ├── Hair   [Button via ColorButtonText]
+            //       │   │   └── Beard  [Button via ColorButtonText]
+            //       │   └── ScrollRect/Hair [CharacterPortraitsController]
+            //       ├── Done   [ColorButtonText(=Button)] / Label [TMP]
+            //       └── Cancel [ColorButtonText(=Button)] / Label [TMP]
             var newCharacter = __instance.transform.Find("CharacterSelection/NewCharacterPanel");
             if (newCharacter != null)
             {
                 var newPlayerCustomization = newCharacter.GetComponent<PlayerCustomizaton>();
                 if (newPlayerCustomization != null)
                 {
-                    newPlayerCustomization.m_noHair = _originalNoHair;
+                    newPlayerCustomization.m_noHair  = _originalNoHair;
                     newPlayerCustomization.m_noBeard = _originalNoBeard;
+
+                    // Слайдеры цвета кожи/волос/оттенка — под Panel/Content/
+                    // Имена в Auga-префабе: SkinTone, "Hair Tone" (с пробелом!), Blondness
+                    var skinToneT  = newCharacter.Find("Panel/Content/SkinTone");
+                    var hairToneT  = newCharacter.Find("Panel/Content/Hair Tone");
+                    var blondnessT = newCharacter.Find("Panel/Content/Blondness");
+                    if (skinToneT  != null) newPlayerCustomization.m_skinHue   = skinToneT.GetComponentInChildren<Slider>(true);
+                    if (hairToneT  != null) newPlayerCustomization.m_hairLevel = hairToneT.GetComponentInChildren<Slider>(true);
+                    if (blondnessT != null) newPlayerCustomization.m_hairTone  = blondnessT.GetComponentInChildren<Slider>(true);
+
+                    Auga.Log($"[NewChar] skinHue={newPlayerCustomization.m_skinHue != null} hairLevel={newPlayerCustomization.m_hairLevel != null} hairTone={newPlayerCustomization.m_hairTone != null}");
+
+                    // m_beardPanel — Beard-tab скрывается для женского персонажа через SetActive(isMale)
+                    // Устанавливаем на GO кнопки Beard в TabButtons, чтобы прятать вкладку для женщин
+                    var beardTabT = newCharacter.Find("Panel/Content/TabButtons/Tabs/Beard");
+                    newPlayerCustomization.m_beardPanel = beardTabT != null
+                        ? beardTabT.GetComponent<RectTransform>()
+                        : null; // PlayerCustomizaton_OnEnable_Patch финализер подавит NPE
+
+                    // m_selectedHair / m_selectedBeard — в Auga нет видимых текстовых полей для имён.
+                    // НО: PlayerCustomizaton.Update() на строке 73974 пишет m_selectedHair.text =
+                    // ПЕРЕД применением цвета кожи/волос. Если null → NPE → Finalizer глушит →
+                    // цвет кожи никогда не применяется. Создаём скрытые заглушки.
+                    var hairStubGO = new GameObject("_AugaStub_SelectedHair");
+                    hairStubGO.SetActive(false);
+                    hairStubGO.transform.SetParent(newCharacter, false);
+                    newPlayerCustomization.m_selectedHair = hairStubGO.AddComponent<TMPro.TextMeshProUGUI>();
+
+                    var beardStubGO = new GameObject("_AugaStub_SelectedBeard");
+                    beardStubGO.SetActive(false);
+                    beardStubGO.transform.SetParent(newCharacter, false);
+                    newPlayerCustomization.m_selectedBeard = beardStubGO.AddComponent<TMPro.TextMeshProUGUI>();
+
+                    // m_maleToggle / m_femaleToggle — под Panel/Content/ToggleGroup/
+                    var toggleFemaleField = FC<Toggle>(newCharacter, "Panel/Content/ToggleGroup/Toggle_Female");
+                    var toggleMaleField   = FC<Toggle>(newCharacter, "Panel/Content/ToggleGroup/Toggle_Male");
+                    if (toggleFemaleField != null) newPlayerCustomization.m_femaleToggle = toggleFemaleField;
+                    if (toggleMaleField   != null) newPlayerCustomization.m_maleToggle   = toggleMaleField;
+
+                    // Подключаем tab-кнопки Hair/Beard к CharacterPortraitsController
+                    var portraitsCtrl = newCharacter.GetComponentInChildren<AugaUnity.CharacterPortraitsController>(true);
+                    var hairTabBtn  = newCharacter.Find("Panel/Content/TabButtons/Tabs/Hair")?.GetComponent<Button>();
+                    var beardTabBtn = newCharacter.Find("Panel/Content/TabButtons/Tabs/Beard")?.GetComponent<Button>();
+                    if (portraitsCtrl != null)
+                    {
+                        if (hairTabBtn  != null) hairTabBtn.onClick.AddListener(() => { portraitsCtrl.SwitchToHairMode();  portraitsCtrl.InitializeChraracterPortraits(); });
+                        if (beardTabBtn != null) beardTabBtn.onClick.AddListener(() => { portraitsCtrl.SwitchToBeardMode(); portraitsCtrl.InitializeChraracterPortraits(); });
+                    }
                 }
-                __instance.m_newCharacterPanel = newCharacter.gameObject;
-                __instance.m_csNewCharacterDone = FC<Button>(newCharacter, "Content/Done")
-                    ?? FC<Button>(newCharacter, "Done");
-                __instance.m_newCharacterError = FO(newCharacter, "Content/NameExistsWarning");
-                __instance.m_csNewCharacterName = FC<GUIFramework.GuiInputField>(newCharacter, "Content/CharacterName")
-                    ?? FC<GUIFramework.GuiInputField>(newCharacter, "CharacterName");
-                SetButtonListener(newCharacter, "Content/Done", () => __instance.OnNewCharacterDone(true));
-                SetButtonListener(newCharacter, "Content/Cancel", __instance.OnNewCharacterCancel);
 
-                // Тексты кнопок и лейблов NewCharacterPanel
-                SetMenuButtonText(newCharacter, "Content/Done", "$menu_done");
-                SetMenuButtonText(newCharacter, "Content/Cancel", "$menu_cancel");
+                __instance.m_newCharacterPanel  = newCharacter.gameObject;
+                // Done/Cancel находятся под Panel/, а не Content/
+                __instance.m_csNewCharacterDone = FC<Button>(newCharacter, "Panel/Done");
+                __instance.m_newCharacterError  = FO(newCharacter, "Panel/Content/NameExistsWarning");
+                __instance.m_csNewCharacterName = FC<GUIFramework.GuiInputField>(newCharacter, "Panel/Content/CharacterName");
 
-                // Лейблы GradientSlider — используют дочерний "Label" (legacy Text) или "TMP Label"
-                SetLabelText(newCharacter, "Content/SkinColor", "$menu_skintone");
-                SetLabelText(newCharacter, "Content/HairColor", "$menu_hairtone");
-                SetLabelText(newCharacter, "Content/HairTone", "$menu_hairtone");
+                SetButtonListener(newCharacter, "Panel/Done",   () => __instance.OnNewCharacterDone(true));
+                SetButtonListener(newCharacter, "Panel/Cancel", __instance.OnNewCharacterCancel);
 
-                var toggleFemale = FC<Toggle>(newCharacter, "ToggleGroup/Toggle_Female");
+                // Тексты кнопок (Done/Cancel: TextMeshProUGUI на дочернем "Label")
+                SetMenuButtonText(newCharacter, "Panel/Done",   "$menu_done");
+                SetMenuButtonText(newCharacter, "Panel/Cancel", "$menu_cancel");
+
+                // Лейблы слайдеров — не перезаписываем, в Auga-префабе уже заданы
+                // правильные ключи через Unity-редактор (AlwaysUpper Text компонент).
+                // Localization.Localize() в конце Postfix'а переведёт их автоматически.
+
+                // Слушатели гендерных тоглов — под Panel/Content/ToggleGroup/
+                var newPlayerCustomization2 = newCharacter.GetComponent<PlayerCustomizaton>();
+                var toggleFemale = FC<Toggle>(newCharacter, "Panel/Content/ToggleGroup/Toggle_Female");
                 if (toggleFemale != null)
                 {
-                    toggleFemale.onValueChanged = new Toggle.ToggleEvent();
-                    toggleFemale.onValueChanged.AddListener((on) => { if (on) newPlayerCustomization?.SetPlayerModel(1); });
-                    toggleFemale.onValueChanged.AddListener((on) => toggleFemale.transform.GetChild(1).gameObject.SetActive(on));
+                    toggleFemale.onValueChanged.RemoveAllListeners();
+                    toggleFemale.onValueChanged.AddListener((on) => { if (on) newPlayerCustomization2?.SetPlayerModel(1); });
                 }
-                var toggleMale = FC<Toggle>(newCharacter, "ToggleGroup/Toggle_Male");
+                var toggleMale = FC<Toggle>(newCharacter, "Panel/Content/ToggleGroup/Toggle_Male");
                 if (toggleMale != null)
                 {
-                    toggleMale.onValueChanged = new Toggle.ToggleEvent();
-                    toggleMale.onValueChanged.AddListener((on) => { if (on) newPlayerCustomization?.SetPlayerModel(0); });
-                    toggleMale.onValueChanged.AddListener((on) => toggleMale.transform.GetChild(1).gameObject.SetActive(on));
+                    toggleMale.onValueChanged.RemoveAllListeners();
+                    toggleMale.onValueChanged.AddListener((on) => { if (on) newPlayerCustomization2?.SetPlayerModel(0); });
                 }
             }
 
@@ -381,14 +453,20 @@ namespace Auga
                 {
                     try
                     {
-                        var comp = stub.AddComponent(fieldType);
+                        // TMP_Text — абстрактный класс, AddComponent(TMP_Text) падает.
+                        // Используем конкретный наследник TextMeshProUGUI.
+                        // Аналогично для других абстрактных Component-типов.
+                        var addType = fieldType;
+                        if (fieldType == typeof(TMPro.TMP_Text) || (fieldType.IsAbstract && typeof(Component).IsAssignableFrom(fieldType)))
+                            addType = typeof(TMPro.TextMeshProUGUI);
+
+                        var comp = stub.AddComponent(addType);
                         field.SetValue(instance, comp);
-                        Auga.LogWarning($"FixDeadFields: stubbed {field.Name} ({fieldType.Name})");
+                        Auga.LogWarning($"FixDeadFields: stubbed {field.Name} ({fieldType.Name} → {addType.Name})");
                     }
                     catch (Exception ex)
                     {
-                        // AddComponent не поддерживает абстрактные типы или специальные
-                        // требования — уничтожаем stub, поле остаётся dead/null.
+                        // AddComponent не поддерживает специальные требования → уничтожаем stub.
                         // Код использующий это поле защищён SafeHide/null-check.
                         UnityEngine.Object.Destroy(stub);
                         Auga.LogWarning($"FixDeadFields: cannot stub {field.Name} ({fieldType.Name}): {ex.Message}");
@@ -497,8 +575,54 @@ namespace Auga
             => __exception is NullReferenceException ? null : __exception;
     }
 
+    // ShowStartGame: показывает StartGame-панель и инициализирует список миров.
+    // В Auga-префабе CanvasGroup находится на дочернем "Panel", а не на корне StartGame.
+    // UIGroupHandler может оставить его non-interactable → панель видна, но не кликабельна.
+    // Postfix + Finalizer оба вызывают EnsureStartGameInteractable для надёжности.
+    // (Если оригинал бросил исключение — Postfix не выполнится, но Finalizer всегда выполнится.)
     [HarmonyPatch(typeof(FejdStartup), "ShowStartGame")]
     public static class FejdStartup_ShowStartGame_Patch
+    {
+        public static void Postfix(FejdStartup __instance)
+            => EnsureStartGameInteractable(__instance);
+
+        public static Exception Finalizer(FejdStartup __instance, Exception __exception)
+        {
+            EnsureStartGameInteractable(__instance);
+            return __exception is NullReferenceException ? null : __exception;
+        }
+
+        private static void EnsureStartGameInteractable(FejdStartup instance)
+        {
+            try
+            {
+                var startGameGO = instance?.m_startGamePanel;
+                if (startGameGO == null || !startGameGO) return;
+
+                // Убеждаемся что корень активен
+                if (!startGameGO.activeSelf)
+                    startGameGO.SetActive(true);
+
+                // CanvasGroup находится на дочернем "Panel", а не на корне StartGame.
+                // UIGroupHandler/анимации могут оставить его non-interactable или alpha=0.
+                // Принудительно включаем все CanvasGroup внутри StartGame.
+                foreach (var cg in startGameGO.GetComponentsInChildren<CanvasGroup>(true))
+                {
+                    cg.interactable   = true;
+                    cg.blocksRaycasts = true;
+                    if (cg.alpha < 0.01f) cg.alpha = 1f;
+                }
+            }
+            catch (Exception ex)
+            {
+                Auga.LogWarning($"[ShowStartGame] CanvasGroup fix failed: {ex.Message}");
+            }
+        }
+    }
+
+    // RefreshWorldSelection вызывается внутри ShowStartGame → UpdateWorldList → может NPE.
+    [HarmonyPatch(typeof(FejdStartup), "RefreshWorldSelection")]
+    public static class FejdStartup_RefreshWorldSelection_Patch
     {
         public static Exception Finalizer(Exception __exception)
             => __exception is NullReferenceException ? null : __exception;
@@ -514,23 +638,94 @@ namespace Auga
     [HarmonyPatch(typeof(FejdStartup), nameof(FejdStartup.UpdateCharacterList))]
     public static class FejdStartup_UpdateCharacterList_Patch
     {
-        // Постфикс не вызывается если ванильный метод бросил исключение,
-        // поэтому используем Finalizer — он вызывается всегда.
+        private static readonly System.Reflection.FieldInfo s_playerInstanceF =
+            typeof(FejdStartup).GetField("m_playerInstance",
+                System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic);
+        private static readonly System.Reflection.FieldInfo s_profilesF =
+            typeof(FejdStartup).GetField("m_profiles",
+                System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic);
+        private static readonly System.Reflection.FieldInfo s_profileIdxF =
+            typeof(FejdStartup).GetField("m_profileIndex",
+                System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic);
+        private static readonly System.Reflection.MethodInfo s_setupPreview =
+            typeof(FejdStartup).GetMethod("SetupCharacterPreview",
+                System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic);
+
+        // Финализер вызывается всегда — и при успехе, и при NPE в ванильном коде.
         public static Exception Finalizer(FejdStartup __instance, Exception __exception)
         {
-            var characterSelect = __instance.GetComponentInChildren<AugaCharacterSelect>(true);
-            if (characterSelect != null)
-                characterSelect.UpdateCharacterList();
-            // Подавляем NPE от null-полей (m_csName, m_csLeftButton и т.д.) которые
-            // Auga заменяет своим AugaCharacterSelect-компонентом.
+            // 1. Обновляем Auga character-select UI (портреты и выделение)
+            try
+            {
+                var characterSelect = __instance.GetComponentInChildren<AugaCharacterSelect>(true);
+                if (characterSelect != null)
+                    characterSelect.UpdateCharacterList();
+            }
+            catch (Exception ex)
+            {
+                Auga.LogWarning($"[AugaCharacterSelect] UpdateCharacterList failed: {ex.GetType().Name}: {ex.Message}");
+            }
+
+            // 2. Если vanilla NPE-нул до SetupCharacterPreview → запускаем превью сами.
+            // Это происходит когда m_csName (TMP_Text) или m_csLeftButton/Right — null/stub.
+            // После фикса FixDeadFields (TextMeshProUGUI вместо TMP_Text) это не нужно,
+            // но оставляем как страховку.
+            try
+            {
+                if (__exception is NullReferenceException && s_setupPreview != null)
+                {
+                    var playerInst = s_playerInstanceF?.GetValue(__instance) as GameObject;
+                    if (playerInst == null)
+                    {
+                        var profiles = s_profilesF?.GetValue(__instance)
+                            as System.Collections.Generic.List<PlayerProfile>;
+                        var idx = s_profileIdxF != null ? (int)s_profileIdxF.GetValue(__instance) : 0;
+                        var profile = (profiles != null && profiles.Count > 0
+                                       && idx >= 0 && idx < profiles.Count)
+                            ? profiles[idx] : null;
+                        s_setupPreview.Invoke(__instance, new object[] { profile });
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Auga.LogWarning($"[UpdateCharacterList] SetupCharacterPreview fallback: {ex.GetType().Name}: {ex.Message}");
+            }
+
+            // Подавляем NPE от null-полей (m_csName, m_csLeftButton и т.д.)
             return __exception is NullReferenceException ? null : __exception;
         }
     }
 
-    // OnCharacterNew / OnCharacterRemove обращаются к полям которые null/dead в Auga
+    // OnCharacterNew: показывает NewCharacterPanel и скрывает SelectCharacter.
+    // Postfix: явно выставляем CanvasGroup.interactable = true на NewCharacterPanel —
+    // UIGroupHandler (из assembly_guiutils) мог оставить его false,
+    // из-за чего CharacterName input field не реагирует на клики/ввод.
     [HarmonyPatch(typeof(FejdStartup), nameof(FejdStartup.OnCharacterNew))]
     public static class FejdStartup_OnCharacterNew_Patch
     {
+        public static void Postfix(FejdStartup __instance)
+        {
+            try
+            {
+                var panel = __instance.m_newCharacterPanel;
+                if (panel != null)
+                {
+                    var cg = panel.GetComponent<CanvasGroup>();
+                    if (cg != null)
+                    {
+                        cg.interactable    = true;
+                        cg.blocksRaycasts  = true;
+                        cg.alpha           = 1f;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Auga.LogWarning($"[OnCharacterNew] CanvasGroup fix failed: {ex.Message}");
+            }
+        }
+
         public static Exception Finalizer(Exception __exception)
             => __exception is NullReferenceException ? null : __exception;
     }
@@ -542,35 +737,41 @@ namespace Auga
             => __exception is NullReferenceException ? null : __exception;
     }
 
-    // CharacterPortraitsController.Update() спамит NPE каждый кадр —
-    // использует PostProcessingBehaviour/DepthOfField которых нет в Unity 6,
-    // а также m_playerInstance может быть null. Отключаем целиком.
-    [HarmonyPatch(typeof(AugaUnity.CharacterPortraitsController), "Update")]
-    public static class CharacterPortraitsController_Update_Patch
-    {
-        public static bool Prefix() => false;
-    }
-
+    // CharacterPortraitsController.Awake: инициализирует камеру для рендера причёсок/бород.
+    // GetCamera() использует null-safe проверки для PostProcessing/DepthOfField →
+    // в Unity 6 без PP-стека работает корректно (компоненты просто не найдены).
+    // Финализер подавляет NPE на случай отсутствия m_mainCamera / m_cameraMarkerCharacter.
     [HarmonyPatch(typeof(AugaUnity.CharacterPortraitsController), "Awake")]
     public static class CharacterPortraitsController_Awake_Patch
     {
-        public static bool Prefix() => false;
+        public static Exception Finalizer(Exception __exception)
+            => __exception is NullReferenceException ? null : __exception;
     }
 
-    // AugaCharacterSelectPhotoBooth.Awake вызывает CharacterPortraitsController.GetCamera()
-    // который использует DepthOfField и PostProcessingBehaviour — в Unity 6 они отсутствуют.
-    // Результат: _camera = null, PhotoBoothCoroutine падает при TakePhoto.
-    // Отключаем Awake и Start полностью (фотографии персонажей недоступны в Unity 6 без PP-стека).
+    // CharacterPortraitsController.Update: рендерит портреты причёсок/бород.
+    // NPE если m_playerInstance == null (персонаж ещё не заспавнен). Финализер подавляет.
+    [HarmonyPatch(typeof(AugaUnity.CharacterPortraitsController), "Update")]
+    public static class CharacterPortraitsController_Update_Patch
+    {
+        public static Exception Finalizer(Exception __exception)
+            => __exception is NullReferenceException ? null : __exception;
+    }
+
+    // AugaCharacterSelectPhotoBooth: фотографирует персонажей для портретов в списке.
+    // GetCamera() — null-safe для PostProcessing в Unity 6. Финализеры на Awake/Start
+    // подавляют NPE на случай отсутствия m_mainCamera и сопутствующих ошибок.
     [HarmonyPatch(typeof(AugaUnity.AugaCharacterSelectPhotoBooth), "Awake")]
     public static class AugaCharacterSelectPhotoBooth_Awake_Patch
     {
-        public static bool Prefix() => false;
+        public static Exception Finalizer(Exception __exception)
+            => __exception is NullReferenceException ? null : __exception;
     }
 
     [HarmonyPatch(typeof(AugaUnity.AugaCharacterSelectPhotoBooth), "Start")]
     public static class AugaCharacterSelectPhotoBooth_Start_Patch
     {
-        public static bool Prefix() => false;
+        public static Exception Finalizer(Exception __exception)
+            => __exception is NullReferenceException ? null : __exception;
     }
 
     [HarmonyPatch(typeof(FejdStartup), nameof(FejdStartup.OnNewCharacterDone))]
@@ -590,17 +791,46 @@ namespace Auga
         }
     }
 
+    // ClearCharacterPreview: Destroy(m_playerInstance) + Instantiate(m_changeEffectPrefab).
+    // Если m_changeEffectPrefab == null (не найден в Auga-сцене) → NPE при Instantiate.
+    // Финализер подавляет — m_playerInstance будет уничтожен через Destroy до NPE.
     [HarmonyPatch(typeof(FejdStartup), nameof(FejdStartup.ClearCharacterPreview))]
     public static class FejdStartup_ClearCharacterPreview_Patch
     {
-        public static bool Prefix(FejdStartup __instance)
+        public static Exception Finalizer(Exception __exception)
+            => __exception is NullReferenceException ? null : __exception;
+    }
+
+    // OnCharacterStart: проверяет m_profileIndex < m_profiles.Count — если m_profiles null → NPE.
+    // Также вызывает ShowStartGame() → RefreshWorldSelection() — защищены Finalizer'ами выше.
+    // Добавляем Finalizer для защиты от непредвиденных NPE + логируем результат.
+    [HarmonyPatch(typeof(FejdStartup), nameof(FejdStartup.OnCharacterStart))]
+    public static class FejdStartup_OnCharacterStart_Patch
+    {
+        public static Exception Finalizer(FejdStartup __instance, Exception __exception)
         {
-            // Всегда разрешаем vanilla ClearCharacterPreview выполниться полностью.
-            // Ранее при TakingPhotos=true мы возвращали false и вручную уничтожали
-            // только m_playerInstance, пропуская полную очистку terrain/Heightmap.
-            // Это приводило к накоплению Heightmap-объектов в статическом списке,
-            // из-за чего ClutterSystem бросал NullReferenceException каждый кадр.
-            return true;
+            if (__exception != null)
+                Auga.LogWarning($"[OnCharacterStart] {__exception.GetType().Name}: {__exception.Message}");
+            return __exception is NullReferenceException ? null : __exception;
         }
+    }
+
+    // PlayerCustomizaton.Update() обращается к m_selectedHair.text, m_selectedBeard.text
+    // и вызывает GetPlayer() → если поля null или GetPlayer() == null → NPE каждый кадр.
+    // Финализер подавляет NPE — поля будут постепенно установлены через наш Postfix.
+    [HarmonyPatch(typeof(PlayerCustomizaton), "Update")]
+    public static class PlayerCustomizaton_Update_Patch
+    {
+        public static Exception Finalizer(Exception __exception)
+            => __exception is NullReferenceException ? null : __exception;
+    }
+
+    // PlayerCustomizaton.OnEnable() обращается к m_beardPanel.gameObject.SetActive() —
+    // если m_beardPanel null → NPE. Финализер подавляет, чтобы не крашило панель.
+    [HarmonyPatch(typeof(PlayerCustomizaton), nameof(PlayerCustomizaton.OnEnable))]
+    public static class PlayerCustomizaton_OnEnable_Patch
+    {
+        public static Exception Finalizer(Exception __exception)
+            => __exception is NullReferenceException ? null : __exception;
     }
 }
