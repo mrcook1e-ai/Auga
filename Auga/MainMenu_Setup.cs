@@ -200,6 +200,9 @@ namespace Auga
                 SetMenuButtonText(charSelect, "Panel/Back", "$menu_back");
                 SetMenuButtonText(charSelect, "Panel/Start", "$menu_start");
                 SetMenuButtonText(charSelect, "Panel/ManageSaves", "$menu_managesaves");
+                // RemoveCharacterDialog buttons
+                SetMenuButtonText(charSelect, "RemoveCharacterDialog/ButtonYes", "$menu_yes");
+                SetMenuButtonText(charSelect, "RemoveCharacterDialog/ButtonNo", "$menu_no");
             }
 
             // ---- NewCharacterPanel ----
@@ -299,9 +302,11 @@ namespace Auga
                 SetMenuButtonText(newCharacter, "Panel/Done",   "$menu_done");
                 SetMenuButtonText(newCharacter, "Panel/Cancel", "$menu_cancel");
 
-                // Лейблы слайдеров — не перезаписываем, в Auga-префабе уже заданы
-                // правильные ключи через Unity-редактор (AlwaysUpper Text компонент).
-                // Localization.Localize() в конце Postfix'а переведёт их автоматически.
+                // Лейблы слайдеров — prefab-overrides не применяются из asset bundle из-за
+                // GUID-mismatch скрипта; устанавливаем тексты программно до Localize().
+                SetLabelText(newCharacter, "Panel/Content/SkinTone",  "$menu_skintone");
+                SetLabelText(newCharacter, "Panel/Content/Hair Tone", "$menu_hairtone");
+                SetLabelText(newCharacter, "Panel/Content/Blondness", "$menu_blondness");
 
                 // Слушатели гендерных тоглов — под Panel/Content/ToggleGroup/
                 var newPlayerCustomization2 = newCharacter.GetComponent<PlayerCustomizaton>();
@@ -351,6 +356,27 @@ namespace Auga
                 SetButtonListener(startGame, "RemoveWorldDialog/ButtonNo", __instance.OnButtonRemoveWorldNo);
                 SetButtonListener(startGame, "NewWorldDialog/Cancel", __instance.OnNewWorldBack);
                 SetButtonListener(startGame, "NewWorldDialog/Done", () => __instance.OnNewWorldDone(true));
+                // JoinPanel button listeners
+                SetButtonListener(startGame, "Panel/JoinPanel/Back",    __instance.OnStartGameBack);
+                SetButtonListener(startGame, "Panel/JoinPanel/Connect", __instance.OnJoinStart);
+
+                // Тексты всех кнопок — prefab-overrides не применяются, устанавливаем программно
+                // WorldPanel
+                SetMenuButtonText(startGame, "Panel/WorldPanel/Start",       "$menu_start");
+                SetMenuButtonText(startGame, "Panel/WorldPanel/NewButton",    "$menu_new");
+                SetMenuButtonText(startGame, "Panel/WorldPanel/Back",         "$menu_back");
+                SetMenuButtonText(startGame, "Panel/WorldPanel/RemoveButton", "$menu_remove");
+                // NewWorldDialog
+                SetMenuButtonText(startGame, "NewWorldDialog/Done",   "$menu_done");
+                SetMenuButtonText(startGame, "NewWorldDialog/Cancel", "$menu_cancel");
+                // RemoveWorldDialog
+                SetMenuButtonText(startGame, "RemoveWorldDialog/ButtonYes", "$menu_yes");
+                SetMenuButtonText(startGame, "RemoveWorldDialog/ButtonNo",  "$menu_no");
+                // JoinPanel
+                SetMenuButtonText(startGame, "Panel/JoinPanel/Back",          "$menu_back");
+                SetMenuButtonText(startGame, "Panel/JoinPanel/Connect",        "$menu_connect");
+                SetMenuButtonText(startGame, "Panel/JoinPanel/RefreshButton",  "$menu_refresh");
+                SetMenuButtonText(startGame, "Panel/JoinPanel/JoinIPButton",   "$menu_joinip");
 
                 var tabHandler = startGame.GetComponentInChildren<TabHandler>(true);
                 if (tabHandler != null && tabHandler.m_tabs.Count >= 2)
